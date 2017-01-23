@@ -87,7 +87,7 @@ app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
       process.exit(1);
     } else {
       const qrCode = qr.svgObject(invitation) as QRSVG;
-      res.render('invitation', {
+      res.render('invited', {
         invitation: invitation,
         qrSize: qrCode.size,
         qrPath: qrCode.path,
