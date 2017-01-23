@@ -19,7 +19,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "build": "tsc",
+    "compile": "tsc",
     "start": "./run.sh"
   },
   "engines": {
