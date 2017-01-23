@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="description" content="Secure Scuttlebutt Pub Server"/>
+  <title>Secure Scuttlebutt Pub Server</title>
+  <style>
+    html { background-color: #f8f9fa; }
+    body {
+      color: #212529;
+      font-family: "Helvetica Neue", "Calibri Light", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: 0.02em;
+      padding-top: 30px;
+    }
+    a { color: inherit; }
+    footer {
+      position: fixed;
+      bottom: 30px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #adb5bd;
+    }
+
+    h1, p, svg { text-align: center; margin: 0 auto; }
+    h1 { max-width: 15em; font-size: 1.3em; margin-bottom: 20px; }
+    p { margin-bottom: 5px; max-width: 500px; }
+
+    code {
+      padding: 2px 3px;
+      background-color: #e9ecef;
+      border-radius: 3px;
+      color: #343a40;
+      font-size: 11px;
+      font-weight: bold;
+      overflow-x: scroll;
+      max-width: 85vw;
+      display: inline-block;
+    }
+    .show-qr {
+      display: inline-block;
+      padding: 6px 10px;
+      background-color: #edf2ff;
+      border-radius: 3px;
+      border-bottom: 2px solid #dbe4ff;
+      color: #364fc7;
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .invited {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 6px 10px;
+      background-color: #4c6ef5;
+      border-radius: 4px;
+      border-bottom: 3px solid #364fc7;
+      color: #edf2ff;
+      font-size: 20px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1><a href="https://ssbc.github.io/docs/">Secure Scuttlebutt</a><br /> is a P2P network ideal for data, identity, and messaging</h1>
+  <p>Welcome to the SSB Pub server whose id is <code><%= id %></code></p>
+  <p>
+    <a class="show-qr" href="#">(Show QR code)</a>
+  </p>
+  <svg class="qr-code"
+    width="180px" height="180px"
+    viewBox="0 0 <%= qrSize %> <%= qrSize %>"
+    style="display:none;"
+    xmlns="http://www.w3.org/2000/svg" version="1.1"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <path d="<%= qrPath %>" />
+  </svg>
+  <p>
+    <a class="invited" href="/invited">Get an invitation</a>
+  </p>
+  <footer>
+    This server is <a href="#">open source</a> under the MIT license.
+  </footer>
+
+  <script>
+    var showQrElem = document.getElementsByClassName("show-qr")[0];
+    var qrCodeSVG = document.getElementsByClassName("qr-code")[0];
+    var qrVisible = false;
+    showQrElem.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      if (qrVisible) {
+        qrCodeSVG.style = "display:none";
+        showQrElem.innerHTML = "(Show QR code)"
+      } else {
+        qrCodeSVG.style = "display:block";
+        showQrElem.innerHTML = "(Hide QR code)"
+      }
+      qrVisible = !qrVisible;
+    });
+  </script>
+</body>
+</html>
