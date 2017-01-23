@@ -30,15 +30,28 @@
     p { margin-bottom: 5px; max-width: 500px; }
 
     code {
-      padding: 2px 3px;
+      text-align: left;
+      font-size: 18px;
+      overflow-wrap: break-word;
+      width: 400px;
+      max-width: 85vw;
+      padding: 6px 10px;
+      font-weight: 600;
       background-color: #e9ecef;
       border-radius: 3px;
       color: #343a40;
-      font-size: 11px;
-      font-weight: bold;
       overflow-x: scroll;
-      max-width: 85vw;
       display: inline-block;
+    }
+    .show-qr {
+      display: inline-block;
+      padding: 6px 10px;
+      background-color: #edf2ff;
+      border-radius: 3px;
+      border-bottom: 2px solid #dbe4ff;
+      color: #364fc7;
+      font-size: 13px;
+      text-decoration: none;
     }
   </style>
 </head>
@@ -46,7 +59,10 @@
 
   <h1>Here is your personal invitation</h1>
   <p><code><%= invitation %></code></p>
-  <svg
+  <p>
+    <a class="show-qr" href="#">(Show QR code)</a>
+  </p>
+  <svg class="qr-code"
     width="180px" height="180px"
     viewBox="0 0 <%= qrSize %> <%= qrSize %>"
     style="display:none;"
@@ -54,9 +70,32 @@
     xmlns:xlink="http://www.w3.org/1999/xlink">
     <path d="<%= qrPath %>" />
   </svg>
+  <p>
+    You can copy and paste this code into an application like
+    <a href="https://ssbc.github.io/patchwork/">Patchwork</a>,
+    <a href="https://github.com/ssbc/patchbay"Patchbay</a>, or
+    <a href="https://github.com/mmckegg/patchwork-next">Patchwork-next</a>
+    to join the social network.
+  </p>
   <footer>
     This server is <a href="#">open source</a> under the MIT license.
   </footer>
 
+  <script>
+    var showQrElem = document.getElementsByClassName("show-qr")[0];
+    var qrCodeSVG = document.getElementsByClassName("qr-code")[0];
+    var qrVisible = false;
+    showQrElem.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      if (qrVisible) {
+        qrCodeSVG.style = "display:none";
+        showQrElem.innerHTML = "(Show QR code)"
+      } else {
+        qrCodeSVG.style = "display:block";
+        showQrElem.innerHTML = "(Hide QR code)"
+      }
+      qrVisible = !qrVisible;
+    });
+  </script>
 </body>
 </html>
