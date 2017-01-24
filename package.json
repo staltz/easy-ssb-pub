@@ -1,7 +1,7 @@
 {
   "name": "easy-ssb-pub",
   "version": "1.0.0",
-  "description": "Deploy an SSB Pub easily",
+  "description": "Deploy a Secure Scuttlebutt Pub easily",
   "author": "Andre Staltz",
   "license": "MIT",
   "main": "index.js",
