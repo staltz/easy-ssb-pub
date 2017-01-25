@@ -20,7 +20,7 @@
   "devDependencies": {},
   "scripts": {
     "compile": "tsc",
-    "start": "./run.sh"
+    "start": "tsc && node dist/index --host $PUB_URL"
   },
   "engines": {
     "node": "6.9.4"
