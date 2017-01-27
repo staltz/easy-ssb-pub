@@ -26,7 +26,7 @@ RUN set -ex \
     done
 
 ENV NPM_CONFIG_LOGLEVEL info
-ENV NODE_VERSION 0.12.17
+ENV NODE_VERSION 6.9.1
 
 RUN apt-get install curl libc6 libcurl3 zlib1g
 
