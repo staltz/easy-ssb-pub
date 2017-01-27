@@ -89,10 +89,10 @@
     showQrElem.addEventListener('click', function (ev) {
       ev.preventDefault();
       if (qrVisible) {
-        qrCodeSVG.style = "display:none";
+        qrCodeSVG.style.display = "none";
         showQrElem.innerHTML = "(Show QR code)"
       } else {
-        qrCodeSVG.style = "display:block";
+        qrCodeSVG.style.display = "block";
         showQrElem.innerHTML = "(Hide QR code)"
       }
       qrVisible = !qrVisible;
