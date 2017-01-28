@@ -12,7 +12,7 @@ However, to join the wider SSB network, you must get a dedicated invitation from
 
 #### If you want to visit an Easy SSB Pub, here are a few known links (potentially ephemeral or broken):
 
-- [http://54.144.208.18](http://54.144.208.18)
+- [http://82.196.3.140/](http://82.196.3.140/)
 - [(add yours here)](https://github.com/staltz/easy-ssb-pub/edit/master/README.md)
 
 ## How to deploy
