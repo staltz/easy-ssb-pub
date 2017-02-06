@@ -26,7 +26,15 @@ Recommended servers-on-demand services: [Digital Ocean Docker Droplet](https://w
 
 1. Access your server via shell (e.g. SSH)
 3. `docker pull staltz/easy-ssb-pub`
-4. `docker run -e "PUB_URL=publicurltoyourserv.er" -e "PORT=80" -p 80:80 -p 8008:8008 -i -t staltz/easy-ssb-pub`
+4. `docker run -e "PUB_URL=publicurltoyourserv.er" -e "PORT=80" -p 80:80 -p 8008:8008 -i -t staltz/easy-ssb-pub --name ssb-pub`
+
+After the container has been created, stop/start/restart the server using:
+
+* `docker stop ssb-pub`
+* `docker start ssb-pub`
+* `docker restart ssb-pub`
+
+_`docker run` creates a new container (and server key) each time. This prevents existing contacts from successfully completing the handshake._
 
 ### Deploy without Docker
 
