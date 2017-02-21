@@ -47,8 +47,6 @@ WORKDIR /usr/src/app
 
 COPY package.json /usr/src/app/
 RUN npm install
-RUN npm install node-gyp
-RUN npm install libsodium
 COPY . /usr/src/app
 
 EXPOSE 8008
