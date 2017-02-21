@@ -3,7 +3,7 @@ FROM buildpack-deps:xenial
 RUN groupadd -r node && useradd -r -g node node
 
 # Update OS
-RUN echo "deb http://archive.ubuntu.com/ubuntu xenial main universe" > /etc/apt/sources.list
+RUN echo "deb http://archive.ubuntu.com/ubuntu xenial main universe" >> /etc/apt/sources.list
 RUN apt-get update
 RUN apt-get upgrade -y
 
