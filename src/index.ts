@@ -7,9 +7,10 @@ import qr = require('qr-image');
 import net = require('net');
 import ternaryStream = require('ternary-stream');
 
-const PUBLIC_PORT = process.env.PORT || 80;
+const PUBLIC_PORT = process.env.PUBLIC_PORT || 80;
+const INTERNAL_COMMON_PORT = process.env.PORT || process.env.PUBLIC_PORT || 80;
 const EXPRESS_PORT = 8009;
-const SBOT_PORT = 8008;
+let SBOT_PORT = 8008;
 
 // Setup Express app ===========================================================
 const app = express();
@@ -63,7 +64,16 @@ bot.whoami((err, identity: {id: string}) => {
       id: identity.id,
       qr: qr.svgObject(identity.id) as QRSVG,
     };
-    console.log('This bot\'s identity is:', identity.id);
+  }
+});
+
+bot.address((err, addr) => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  } else {
+    console.log('Scuttlebot app is running on address', addr);
+    SBOT_PORT = (/\:(\d+)\~/g.exec(addr) as any)[1];
   }
 });
 
@@ -92,7 +102,7 @@ app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
       console.error(err);
       process.exit(1);
     } else {
-      invitation = invitation.replace(/^[^\:]*\:\d+\:/g, `:${PUBLIC_PORT}:`);
+      invitation = invitation.replace(/(?=[^\:]*\:)(\d+)(?=\:)/g, `${PUBLIC_PORT}`);
       const qrCode = qr.svgObject(invitation) as QRSVG;
       res.render('invited', {
         invitation: invitation,
@@ -114,10 +124,11 @@ function isHTTP(data) {
 };
 
 net.createServer(function onConnect(socket) {
+  console.log('onConnect internal common socket');
   const httpConnection = net.createConnection({port: EXPRESS_PORT});
   const sbotConnection = net.createConnection({port: SBOT_PORT});
 
   socket
     .pipe(ternaryStream(isHTTP, httpConnection, sbotConnection))
     .pipe(socket);
-}).listen(PUBLIC_PORT);
+}).listen(INTERNAL_COMMON_PORT);
