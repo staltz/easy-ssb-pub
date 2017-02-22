@@ -92,7 +92,7 @@ app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
       console.error(err);
       process.exit(1);
     } else {
-      invitation = invitation.replace(`:${SBOT_PORT}:`, `:${PUBLIC_PORT}:`);
+      invitation = invitation.replace(/^[^\:]*\:\d+\:/g, `:${PUBLIC_PORT}:`);
       const qrCode = qr.svgObject(invitation) as QRSVG;
       res.render('invited', {
         invitation: invitation,
