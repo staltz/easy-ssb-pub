@@ -1,6 +1,6 @@
 version: '2'
 services:
-  web:
+  easy_ssb_pub:
     build: .
     environment:
       PUB_URL: "${PUB_URL}"
