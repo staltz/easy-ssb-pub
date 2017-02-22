@@ -1,0 +1,12 @@
+version: '2'
+services:
+  web:
+    build: .
+    environment:
+      PUB_URL: "${PUB_URL}"
+    ports:
+      - "80:80"
+    container_name: easy-ssb-pub
+    mem_limit: 450M
+    memswap_limit: 1G
+    restart: unless-stopped

@@ -47,8 +47,7 @@ WORKDIR /usr/src/app
 
 COPY package.json /usr/src/app/
 RUN npm install
+RUN npm install node-gyp libsodium
 COPY . /usr/src/app
-
-EXPOSE 8008
 
 CMD [ "npm", "start" ]
