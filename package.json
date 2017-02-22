@@ -4,7 +4,7 @@
   "description": "Deploy a Secure Scuttlebutt Pub easily",
   "author": "Andre Staltz",
   "license": "MIT",
-  "main": "index.js",
+  "main": "dist/index.js",
   "dependencies": {
     "@types/express": "^4.0.35",
     "body-parser": "^1.16.0",
@@ -24,6 +24,6 @@
     "start": "tsc && node dist/index --host $PUB_URL"
   },
   "engines": {
-    "node": "6.9.4"
+    "node": "6.9.1"
   }
 }

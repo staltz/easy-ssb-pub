@@ -7,7 +7,10 @@
     "noUnusedLocals": false,
     "sourceMap": true,
     "strictNullChecks": true,
-    "outDir": "./dist/"
+    "outDir": "./dist/",
+    "lib": [
+      "es2015"
+    ]
   },
   "formatCodeOptions": {
     "indentSize": 2,

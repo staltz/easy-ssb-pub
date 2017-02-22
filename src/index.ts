@@ -8,7 +8,7 @@ import net = require('net');
 import ternaryStream = require('ternary-stream');
 
 const PUBLIC_PORT = process.env.PORT || 80;
-const EXPRESS_PORT = 3000;
+const EXPRESS_PORT = 8009;
 const SBOT_PORT = 8008;
 
 // Setup Express app ===========================================================
