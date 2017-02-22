@@ -18,15 +18,11 @@ However, to join the wider SSB network, you must get a dedicated invitation from
 
 ## How to deploy
 
-You will need a server that supports exposing ports other than just 80. This means [Heroku](https://heroku.com/) or [Zeit Now](https://zeit.co/now) will *not* work.
-
-### Deploy using Docker
-
-Recommended servers-on-demand services: [Digital Ocean Docker Droplet](https://www.digitalocean.com/products/one-click-apps/docker/), [Amazon LightSail](https://amazonlightsail.com/), [Vultr](https://vultr.com/), [Linode](https://www.linode.com), etc.
+You will need a server that supports a TCP socket over port 80. This means [Heroku](https://heroku.com/) or [Zeit Now](https://zeit.co/now) will *not* work. Recommended services for servers-on-demand: [Digital Ocean Docker Droplet](https://www.digitalocean.com/products/one-click-apps/docker/), [UpCloud](https://upcloud.com/), [Amazon LightSail](https://amazonlightsail.com/), [Vultr](https://vultr.com/), [Linode](https://www.linode.com), etc.
 
 1. Access your server via shell (e.g. SSH)
 3. `docker pull staltz/easy-ssb-pub`
-4. `docker run -e "PUB_URL=publicurltoyourserv.er" -e "PORT=80" -p 80:80 -m 450M --memory-swap 1G --restart=unless-stopped --name ssb-pub -it staltz/easy-ssb-pub`
+4. `docker run -e "PUB_URL=publicurltoyourserv.er" -p 80:80 -m 450M --memory-swap 1G --restart=unless-stopped --name ssb-pub -d staltz/easy-ssb-pub`
 
 After the container has been created, stop/start/restart the server using:
 
