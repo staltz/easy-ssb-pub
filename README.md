@@ -20,13 +20,6 @@ However, to join the wider SSB network, you must get a dedicated invitation from
 
 You will need a server that supports a TCP socket over port 80. This means [Heroku](https://heroku.com/) or [Zeit Now](https://zeit.co/now) will *not* work. Recommended services for servers-on-demand: [Digital Ocean Docker Droplet](https://www.digitalocean.com/products/one-click-apps/docker/), [UpCloud](https://upcloud.com/), [Amazon LightSail](https://amazonlightsail.com/), [Vultr](https://vultr.com/), [Linode](https://www.linode.com), etc.
 
-1. Acess your server via shell (e.g. SSH)
-2. `git clone https://github.com/staltz/easy-ssb-pub.git`
-3. `cd easy-ssb-pub`
-4. `PUB_URL=publicurltoyourserv.er docker-compose up -d`
-
-### OR
-
 1. Access your server via shell (e.g. SSH)
 2. `docker pull staltz/easy-ssb-pub`
 3. `docker run -e "PUB_URL=publicurltoyourserv.er" -p 80:80 -m 450M --memory-swap 1G --restart=unless-stopped --name ssb-pub -d staltz/easy-ssb-pub`
@@ -38,6 +31,13 @@ After the container has been created, stop/start/restart the server using:
 * `docker restart ssb-pub`
 
 _`docker run` creates a new container (and server key) each time. This prevents existing contacts from successfully completing the handshake._
+
+### OR
+
+1. Acess your server via shell (e.g. SSH)
+2. `git clone https://github.com/staltz/easy-ssb-pub.git`
+3. `cd easy-ssb-pub`
+4. `PUB_URL=publicurltoyourserv.er docker-compose up -d`
 
 ### OR
 
