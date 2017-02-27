@@ -133,6 +133,7 @@ app.listen(app.get('port'), () => {
 // Facade redirection server ===================================================
 function isHTTPTraffic(data) {
   const str = data.toString('ascii');
+  debug('Facade traffic: "%s"', str);
   return /^.*HTTP[^\n]*\n/g.exec(str);
 };
 
