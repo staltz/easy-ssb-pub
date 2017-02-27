@@ -145,12 +145,12 @@ net.createServer(function onConnect(socket) {
   debug('Facade onConnect internal common socket');
   const httpConnection = net.createConnection({port: EXPRESS_PORT});
   const sbotConnection = net.createConnection({port: SBOT_PORT});
-  const swarmConnection = net.createConnection({port: DISCOVERY_SWARM_PORT});
+  // const swarmConnection = net.createConnection({port: DISCOVERY_SWARM_PORT});
 
   socket
     .pipe(
       ternaryStream(isHTTPTraffic, httpConnection,
-      ternaryStream(isSwarmTraffic, swarmConnection,
-      sbotConnection)))
+      // ternaryStream(isSwarmTraffic, swarmConnection,
+      sbotConnection))
     .pipe(socket);
 }).listen(INTERNAL_COMMON_PORT);
