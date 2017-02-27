@@ -138,19 +138,19 @@ function isHTTPTraffic(data) {
 
 function isSwarmTraffic(data) {
   const str = data.toString('ascii');
-  return /ssb-discovery-swarm/g.exec(str);
+  return /ssb-discovery-swarm:/g.exec(str);
 }
 
 net.createServer(function onConnect(socket) {
-  debug('Facade onConnect internal common socket');
+  debug(`Facade on port ${INTERNAL_COMMON_PORT} received a connection`);
   const httpConnection = net.createConnection({port: EXPRESS_PORT});
+  const swarmConnection = net.createConnection({port: DISCOVERY_SWARM_PORT});
   const sbotConnection = net.createConnection({port: SBOT_PORT});
-  // const swarmConnection = net.createConnection({port: DISCOVERY_SWARM_PORT});
 
   socket
     .pipe(
       ternaryStream(isHTTPTraffic, httpConnection,
-      // ternaryStream(isSwarmTraffic, swarmConnection,
-      sbotConnection))
+      ternaryStream(isSwarmTraffic, swarmConnection,
+      sbotConnection)))
     .pipe(socket);
 }).listen(INTERNAL_COMMON_PORT);
