@@ -5,20 +5,17 @@ import ssbKeys = require('ssb-keys');
 import path = require('path');
 import qr = require('qr-image');
 import net = require('net');
+import swarm = require('discovery-swarm');
 import ternaryStream = require('ternary-stream');
+import createDebug = require('debug');
+
+const debug = createDebug('easy-ssb-pub');
 
 const PUBLIC_PORT = process.env.PUBLIC_PORT || 80;
 const INTERNAL_COMMON_PORT = process.env.PORT || process.env.PUBLIC_PORT || 80;
 const EXPRESS_PORT = 8009;
 let SBOT_PORT = 8008;
-
-// Setup Express app ===========================================================
-const app = express();
-app.use(express.static(__dirname + '/public'));
-app.use(require('body-parser').urlencoded({ extended: true }));
-app.set('port', EXPRESS_PORT);
-app.set('views', __dirname + '/../pages');
-app.set('view engine', 'ejs');
+const DISCOVERY_SWARM_PORT = 8007;
 
 // Setup Scuttlebot ============================================================
 let argv = process.argv.slice(2);
@@ -53,47 +50,63 @@ interface BotIdentity {
   qr: QRSVG;
 }
 
-let thisBotIdentity: BotIdentity | null = null;
-
-bot.whoami((err, identity: {id: string}) => {
-  if (err) {
-    console.error(err);
-    process.exit(1);
-  } else {
-    thisBotIdentity = {
-      id: identity.id,
-      qr: qr.svgObject(identity.id) as QRSVG,
-    };
-  }
-});
+const idQR = qr.svgObject(bot.id);
 
 bot.address((err, addr) => {
   if (err) {
     console.error(err);
     process.exit(1);
   } else {
-    console.log('Scuttlebot app is running on address', addr);
+    debug('Scuttlebot app is running on address %s', addr);
     SBOT_PORT = (/\:(\d+)\~/g.exec(addr) as any)[1];
   }
 });
 
-// Setup Express routes ========================================================
+// Setup Discovery Swarm =======================================================
+var peer = swarm({
+  maxConnections: 1000,
+  utp: true,
+  id: 'ssb-discovery-swarm:' + bot.id,
+});
+
+peer.listen(DISCOVERY_SWARM_PORT)
+peer.join('ssb-discovery-swarm', {announce: false}, function () {});
+
+peer.on('connection', function (connection, _info) {
+  const info = _info;
+  info.id = info.id.toString('ascii');
+  info._peername = connection._peername;
+  if (info.id.indexOf('ssb-discovery-swarm:') === 0) {
+    debug('Discovery swarm found peer %s:%s', info.host, info.port);
+    const remotePublicKey = info.id.split('ssb-discovery-swarm:')[1];
+    const addr = `${info.host}:${info.port}:${remotePublicKey}`;
+    debug(`Connecting to SSB peer ${addr} found through discovery swarm`);
+    bot.gossip.connect(`${info.host}:${info.port}:${remotePublicKey}`, function (err) {
+      if (err) {
+        console.error(err);
+      } else {
+        debug('Successfully connected to remote SSB peer ' + addr);
+      }
+    });
+  }
+})
+
+// Setup Express app ===========================================================
+const app = express();
+app.use(express.static(__dirname + '/public'));
+app.use(require('body-parser').urlencoded({ extended: true }));
+app.set('port', EXPRESS_PORT);
+app.set('views', __dirname + '/../pages');
+app.set('view engine', 'ejs');
+
 type Route = '/' | '/invited';
 
 app.get('/' as Route, (req: express.Request, res: express.Response) => {
-  function tryToRender() {
-    if (thisBotIdentity) {
-      res.render('index', {
-        id: thisBotIdentity.id,
-        qrSize: thisBotIdentity.qr.size,
-        qrPath: thisBotIdentity.qr.path,
-      });
-    } else {
-      setTimeout(tryToRender, 200);
-    }
-  }
-
-  tryToRender();
+  res.render('index', {
+    id: bot.id,
+    qrSize: idQR.size,
+    qrPath: idQR.path,
+  });
 });
 
 app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
@@ -114,21 +127,30 @@ app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
 });
 
 app.listen(app.get('port'), () => {
-  console.log('Express app is running on port', app.get('port'));
+  debug('Express app is running on port %s', app.get('port'));
 });
 
-// Y-redirection server ========================================================
-function isHTTP(data) {
+// Facade redirection server ===================================================
+function isHTTPTraffic(data) {
   const str = data.toString('ascii');
   return /^.*HTTP[^\n]*\n/g.exec(str);
 };
 
+function isSwarmTraffic(data) {
+  const str = data.toString('ascii');
+  return /ssb-discovery-swarm/g.exec(str);
+}
+
 net.createServer(function onConnect(socket) {
-  console.log('onConnect internal common socket');
+  debug('Facade onConnect internal common socket');
   const httpConnection = net.createConnection({port: EXPRESS_PORT});
   const sbotConnection = net.createConnection({port: SBOT_PORT});
+  const swarmConnection = net.createConnection({port: DISCOVERY_SWARM_PORT});
 
   socket
-    .pipe(ternaryStream(isHTTP, httpConnection, sbotConnection))
+    .pipe(
+      ternaryStream(isHTTPTraffic, httpConnection,
+      ternaryStream(isSwarmTraffic, swarmConnection,
+      sbotConnection)))
     .pipe(socket);
 }).listen(INTERNAL_COMMON_PORT);
