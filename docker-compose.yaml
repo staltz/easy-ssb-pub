@@ -6,6 +6,8 @@ services:
       PUB_URL: "${PUB_URL}"
     ports:
       - "80:80"
+      - "8008:8008"
+      - "8007:8007"
     container_name: easy-ssb-pub
     mem_limit: 450M
     memswap_limit: 1G

@@ -11,11 +11,9 @@ import createDebug = require('debug');
 
 const debug = createDebug('easy-ssb-pub');
 
-const PUBLIC_PORT = process.env.PUBLIC_PORT || 80;
-const INTERNAL_COMMON_PORT = process.env.PORT || process.env.PUBLIC_PORT || 80;
-const EXPRESS_PORT = 8009;
 let SBOT_PORT = 8008;
-const DISCOVERY_SWARM_PORT = 8007;
+const SWARM_PORT = 8007;
+const HTTP_PORT = 80;
 
 // Setup Scuttlebot ============================================================
 let argv = process.argv.slice(2);
@@ -69,7 +67,7 @@ var peer = swarm({
   id: 'ssb-discovery-swarm:' + bot.id,
 });
 
-peer.listen(DISCOVERY_SWARM_PORT)
+peer.listen(SWARM_PORT)
 peer.join('ssb-discovery-swarm', {announce: false}, function () {});
 
 peer.on('connection', function (connection, _info) {
@@ -95,7 +93,7 @@ peer.on('connection', function (connection, _info) {
 const app = express();
 app.use(express.static(__dirname + '/public'));
 app.use(require('body-parser').urlencoded({ extended: true }));
-app.set('port', EXPRESS_PORT);
+app.set('port', HTTP_PORT);
 app.set('views', __dirname + '/../pages');
 app.set('view engine', 'ejs');
 
@@ -115,7 +113,6 @@ app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
       console.error(err);
       process.exit(1);
     } else {
-      invitation = invitation.replace(/\:(\d+)\:/g, `:${PUBLIC_PORT}:`);
       const qrCode = qr.svgObject(invitation) as QRSVG;
       res.render('invited', {
         invitation: invitation,
@@ -129,29 +126,3 @@ app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
 app.listen(app.get('port'), () => {
   debug('Express app is running on port %s', app.get('port'));
 });
-
-// Facade redirection server ===================================================
-function isHTTPTraffic(data) {
-  const str = data.toString('ascii');
-  debug('Facade traffic: "%s"', str);
-  return /^.*HTTP[^\n]*\n/g.exec(str);
-};
-
-function isSwarmTraffic(data) {
-  const str = data.toString('ascii');
-  return /ssb-discovery-swarm:/g.exec(str);
-}
-
-net.createServer(function onConnect(socket) {
-  debug(`Facade on port ${INTERNAL_COMMON_PORT} received a connection`);
-  const httpConnection = net.createConnection({port: EXPRESS_PORT});
-  const swarmConnection = net.createConnection({port: DISCOVERY_SWARM_PORT});
-  const sbotConnection = net.createConnection({port: SBOT_PORT});
-
-  socket
-    .pipe(
-      ternaryStream(isHTTPTraffic, httpConnection,
-      ternaryStream(isSwarmTraffic, swarmConnection,
-      sbotConnection)))
-    .pipe(socket);
-}).listen(INTERNAL_COMMON_PORT);
