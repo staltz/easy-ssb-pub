@@ -27,8 +27,6 @@ WORKDIR /usr/src/app
 COPY package.json /usr/src/app/
 RUN . $HOME/.nvm/nvm.sh && npm install
 COPY . /usr/src/app
-RUN mkdir -p $HOME/.ssb
-VOLUME $HOME/.ssb
 
 EXPOSE 80
 EXPOSE 8008

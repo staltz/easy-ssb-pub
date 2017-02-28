@@ -22,7 +22,7 @@ You will need a server that supports a TCP sockets on port 80 and UDP sockets on
 
 1. Access your server via shell (e.g. SSH)
 2. `docker pull staltz/easy-ssb-pub`
-3. `docker run -e "PUB_URL=publicurltoyourserv.er" -p 80:80 -p 8008:8008 -p 8007:8007 -m 450M --memory-swap 1G --restart=unless-stopped --name ssb-pub -d staltz/easy-ssb-pub`
+3. `docker run -e "PUB_URL=publicurltoyourserv.er" -v $HOME/.ssb:/root/.ssb -p 80:80 -p 8008:8008 -p 8007:8007 -m 450M --memory-swap 1G --restart=unless-stopped --name ssb-pub -d staltz/easy-ssb-pub`
 
 After the container has been created, stop/start/restart the server using:
 
