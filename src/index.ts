@@ -12,8 +12,16 @@ import createDebug = require('debug');
 const debug = createDebug('easy-ssb-pub');
 
 let SBOT_PORT = 8008;
-const SWARM_PORT = 8007;
+const SWARM_PORT = sbotPortToSwarmPort(SBOT_PORT);
 const HTTP_PORT = 80;
+
+function swarmPortToSbotPort(swarmPort) {
+  return swarmPort + 1;
+}
+
+function sbotPortToSwarmPort(sbotPort) {
+  return sbotPort - 1;
+}
 
 // Setup Scuttlebot ============================================================
 let argv = process.argv.slice(2);
@@ -63,18 +71,22 @@ var peer = swarm({
 });
 
 peer.listen(SWARM_PORT)
-peer.join('ssb-discovery-swarm', {announce: true}, function () {});
+peer.join('ssb-discovery-swarm', {announce: true}, function () {
+  debug('Joining discovery swarm under the channel "ssb-discovery-swarm"');
+});
 
 peer.on('connection', function (connection, _info) {
   const info = _info;
   info.id = info.id.toString('ascii');
-  info._peername = connection._peername;
   if (info.id.indexOf('ssb:') === 0 && info.host) {
-    debug('Discovery swarm found peer %s:%s', info.host, info.port);
-    const remotePublicKey = info.id.split('ssb:')[1];
-    const addr = `${info.host}:${info.port}:${remotePublicKey}`;
+    debug('Found discovery swarm peer %s:%s, %s', info.host, info.port, info._peername);
+
+    const remoteSbotHost = info.host;
+    const remoteSbotKey = info.id.split('ssb:')[1];
+    const remoteSbotPort = swarmPortToSbotPort(info.port);
+    const addr = `${remoteSbotHost}:${remoteSbotPort}:${remoteSbotKey}`;
     debug(`Connecting to SSB peer ${addr} found through discovery swarm`);
-    bot.gossip.connect(`${info.host}:${info.port}:${remotePublicKey}`, function (err) {
+    bot.gossip.connect(addr, function (err) {
       if (err) {
         console.error(err);
       } else {
