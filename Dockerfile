@@ -24,12 +24,14 @@ RUN cd /libsodium && ./configure && make && make check && make install
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-EXPOSE 80
-EXPOSE 8008
-EXPOSE 8007
-
 COPY package.json /usr/src/app/
 RUN . $HOME/.nvm/nvm.sh && npm install
 COPY . /usr/src/app
+RUN mkdir -p $HOME/.ssb
+VOLUME $HOME/.ssb
+
+EXPOSE 80
+EXPOSE 8008
+EXPOSE 8007
 
 CMD . $HOME/.nvm/nvm.sh && npm start
