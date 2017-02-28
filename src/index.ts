@@ -43,11 +43,6 @@ interface QRSVG {
   path: string;
 }
 
-interface BotIdentity {
-  id: string;
-  qr: QRSVG;
-}
-
 const idQR = qr.svgObject(bot.id);
 
 bot.address((err, addr) => {
@@ -64,7 +59,7 @@ bot.address((err, addr) => {
 var peer = swarm({
   maxConnections: 1000,
   utp: true,
-  id: bot.id,
+  id: 'ssb:' + bot.id,
 });
 
 peer.listen(SWARM_PORT)
@@ -74,16 +69,19 @@ peer.on('connection', function (connection, _info) {
   const info = _info;
   info.id = info.id.toString('ascii');
   info._peername = connection._peername;
-  debug('Discovery swarm found peer %s:%s', info.host, info.port);
-  const addr = `${info.host}:${info.port}:${info.id}`;
-  debug(`Connecting to SSB peer ${addr} found through discovery swarm`);
-  bot.gossip.connect(`${info.host}:${info.port}:${info.id}`, function (err) {
-    if (err) {
-      console.error(err);
-    } else {
-      debug('Successfully connected to remote SSB peer ' + addr);
-    }
-  });
+  if (info.id.indexOf('ssb:') === 0 && info.host) {
+    debug('Discovery swarm found peer %s:%s', info.host, info.port);
+    const remotePublicKey = info.id.split('ssb:')[1];
+    const addr = `${info.host}:${info.port}:${remotePublicKey}`;
+    debug(`Connecting to SSB peer ${addr} found through discovery swarm`);
+    bot.gossip.connect(`${info.host}:${info.port}:${remotePublicKey}`, function (err) {
+      if (err) {
+        console.error(err);
+      } else {
+        debug('Successfully connected to remote SSB peer ' + addr);
+      }
+    });
+  }
 })
 
 // Setup Express app ===========================================================
