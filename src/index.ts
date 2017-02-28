@@ -78,7 +78,7 @@ peer.join('ssb-discovery-swarm', {announce: true}, function () {
 peer.on('connection', function (connection, _info) {
   const info = _info;
   info.id = info.id.toString('ascii');
-  if (info.id.indexOf('ssb:') === 0 && info.host) {
+  if (info.id.indexOf('ssb:') === 0 && info.host && info.host !== config.host) {
     debug('Found discovery swarm peer %s:%s, %s', info.host, info.port, info._peername);
 
     const remoteSbotHost = info.host;
