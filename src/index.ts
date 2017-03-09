@@ -1,4 +1,5 @@
-import * as express from 'express';
+import express = require('express');
+import superagent = require('superagent');
 import ssbClient = require('scuttlebot');
 import minimist = require('minimist');
 import ssbKeys = require('ssb-keys');
@@ -13,7 +14,7 @@ const debug = createDebug('easy-ssb-pub');
 
 let SBOT_PORT = 8008;
 const SWARM_PORT = sbotPortToSwarmPort(SBOT_PORT);
-const HTTP_PORT = 80;
+const HTTP_PORT = 4000;
 
 function swarmPortToSbotPort(swarmPort) {
   return swarmPort + 1;
@@ -84,13 +85,23 @@ peer.on('connection', function (connection, _info) {
     const remoteSbotHost = info.host;
     const remoteSbotKey = info.id.split('ssb:')[1];
     const remoteSbotPort = swarmPortToSbotPort(info.port);
-    const addr = `${remoteSbotHost}:${remoteSbotPort}:${remoteSbotKey}`;
-    debug(`Connecting to SSB peer ${addr} found through discovery swarm`);
-    bot.gossip.connect(addr, function (err) {
+    const sbotAddr = `${remoteSbotHost}:${remoteSbotPort}:${remoteSbotKey}`;
+    debug(`Found SSB peer ${sbotAddr} through discovery swarm`);
+    const invitationUrl = `http://${remoteSbotHost}/invited/json`;
+    debug(`Asking SSB peer ${invitationUrl} for an invitation...`);
+
+    superagent(invitationUrl).end((err, res) => {
       if (err) {
         console.error(err);
       } else {
-        debug('Successfully connected to remote SSB peer ' + addr);
+        bot.invite.accept(res.body.invitation, (err2, results) => {
+          if (err2) {
+            console.error(err2);
+          } else {
+            debug('Successfully connected to remote SSB peer ' + sbotAddr);
+            debug(results);
+          }
+        });
       }
     });
   }

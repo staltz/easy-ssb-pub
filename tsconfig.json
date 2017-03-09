@@ -9,7 +9,8 @@
     "strictNullChecks": true,
     "outDir": "./dist/",
     "lib": [
-      "es2015"
+      "es2015",
+      "dom"
     ]
   },
   "formatCodeOptions": {
