@@ -4,11 +4,13 @@ services:
     build: .
     environment:
       PUB_URL: "${PUB_URL}"
+      HOME: "${HOME}"
     ports:
       - "80:80"
       - "8008:8008"
       - "8007:8007"
+    volumes:
+      - $HOME/.ssb:/root/.ssb
     container_name: easy-ssb-pub
     mem_limit: 450M
-    memswap_limit: 1G
     restart: unless-stopped
