@@ -5,6 +5,7 @@ services:
     environment:
       PUB_URL: "${PUB_URL}"
       HOME: "${HOME}"
+      DEBUG: "${DEBUG}"
     ports:
       - "80:80"
       - "8008:8008"
