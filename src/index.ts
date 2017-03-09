@@ -51,7 +51,7 @@ interface QRSVG {
   path: string;
 }
 
-const idQR = qr.svgObject(bot.id);
+const idQR: QRSVG = qr.svgObject(bot.id);
 
 bot.address((err, addr) => {
   if (err) {
@@ -59,7 +59,7 @@ bot.address((err, addr) => {
     process.exit(1);
   } else {
     debug('Scuttlebot app is running on address %s', addr);
-    SBOT_PORT = (/\:(\d+)\~/g.exec(addr) as any)[1];
+    SBOT_PORT = parseInt((/\:(\d+)\~/g.exec(addr) as any)[1]);
   }
 });
 
@@ -104,7 +104,7 @@ app.set('port', HTTP_PORT);
 app.set('views', __dirname + '/../pages');
 app.set('view engine', 'ejs');
 
-type Route = '/' | '/invited';
+type Route = '/' | '/invited' | '/invited/json';
 
 app.get('/' as Route, (req: express.Request, res: express.Response) => {
   res.render('index', {
@@ -125,6 +125,19 @@ app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
         invitation: invitation,
         qrSize: qrCode.size,
         qrPath: qrCode.path,
+      });
+    }
+  });
+});
+
+app.get('/invited/json' as Route, (req: express.Request, res: express.Response) => {
+  bot.invite.create(1, (err, invitation) => {
+    if (err) {
+      console.error(err);
+      process.exit(1);
+    } else {
+      res.json({
+        invitation: invitation,
       });
     }
   });
