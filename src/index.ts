@@ -10,11 +10,14 @@ import swarm = require('discovery-swarm');
 import ternaryStream = require('ternary-stream');
 import createDebug = require('debug');
 
-const debug = createDebug('easy-ssb-pub');
+const pkg = require('../package.json');
+const debug = createDebug(pkg.name);
+// Convert to ComVer:
+const version = (/^(\d+\.\d+)\.\d+$/.exec(pkg.version) as RegExpExecArray)[1];
 
 let SBOT_PORT = 8008;
 const SWARM_PORT = sbotPortToSwarmPort(SBOT_PORT);
-const HTTP_PORT = 4000;
+const HTTP_PORT = 80;
 
 function swarmPortToSbotPort(swarmPort) {
   return swarmPort + 1;
@@ -65,10 +68,12 @@ bot.address((err, addr) => {
 });
 
 // Setup Discovery Swarm =======================================================
+const ID_PREFIX = 'easy-ssb-pub@';
+
 var peer = swarm({
   maxConnections: 1000,
   utp: true,
-  id: 'ssb:' + bot.id,
+  id: ID_PREFIX + version,
 });
 
 peer.listen(SWARM_PORT)
@@ -79,15 +84,20 @@ peer.join('ssb-discovery-swarm', {announce: true}, function () {
 peer.on('connection', function (connection, _info) {
   const info = _info;
   info.id = info.id.toString('ascii');
-  if (info.id.indexOf('ssb:') === 0 && info.host && info.host !== config.host) {
+  if (info.id.indexOf(ID_PREFIX) === 0 && info.host && info.host !== config.host) {
     debug('Found discovery swarm peer %s:%s, %s', info.host, info.port, info._peername);
 
-    const remoteSbotHost = info.host;
-    const remoteSbotKey = info.id.split('ssb:')[1];
-    const remoteSbotPort = swarmPortToSbotPort(info.port);
-    const sbotAddr = `${remoteSbotHost}:${remoteSbotPort}:${remoteSbotKey}`;
-    debug(`Found SSB peer ${sbotAddr} through discovery swarm`);
-    const invitationUrl = `http://${remoteSbotHost}/invited/json`;
+    const remoteVersion = info.id.split(ID_PREFIX)[1];
+    const remoteMajorVer = remoteVersion.split('.')[0];
+    const localMajorVer = version.split('.')[0];
+    if (remoteMajorVer !== localMajorVer) {
+      debug(`Ignored peer easy-ssb-pub because of mismatching versions` +
+        `${remoteVersion} (remote) and ${version} (local).`);
+      return;
+    }
+
+    const remoteHost = info.host;
+    const invitationUrl = `http://${remoteHost}/invited/json`;
     debug(`Asking SSB peer ${invitationUrl} for an invitation...`);
 
     superagent(invitationUrl).end((err, res) => {
@@ -98,14 +108,14 @@ peer.on('connection', function (connection, _info) {
           if (err2) {
             console.error(err2);
           } else {
-            debug('Successfully connected to remote SSB peer ' + sbotAddr);
+            debug('Successfully connected to remote SSB peer ' + remoteHost);
             debug(results);
           }
         });
       }
     });
   }
-})
+});
 
 // Setup Express app ===========================================================
 const app = express();
