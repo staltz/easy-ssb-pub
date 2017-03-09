@@ -15,7 +15,7 @@ const debug = createDebug(pkg.name);
 const version = (/^(\d+\.\d+)\.\d+$/.exec(pkg.version) as RegExpExecArray)[1];
 
 let SBOT_PORT = 8008;
-const SWARM_PORT = 8007
+const SWARM_PORT = 8007;
 const HTTP_PORT = 80;
 
 // Setup Scuttlebot ============================================================
@@ -61,13 +61,13 @@ bot.address((err: any, addr: string) => {
 // Setup Discovery Swarm =======================================================
 const ID_PREFIX = 'easy-ssb-pub@';
 
-var peer = swarm({
+const peer = swarm({
   maxConnections: 1000,
   utp: true,
   id: ID_PREFIX + version,
 });
 
-peer.listen(SWARM_PORT)
+peer.listen(SWARM_PORT);
 peer.join('ssb-discovery-swarm', {announce: true}, function () {
   debug('Joining discovery swarm under the channel "ssb-discovery-swarm"');
 });

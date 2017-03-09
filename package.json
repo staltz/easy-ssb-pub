@@ -10,6 +10,7 @@
     "@types/debug": "0.0.29",
     "@types/express": "^4.0.35",
     "@types/minimist": "^1.2.0",
+    "@types/mocha": "^2.2.39",
     "@types/superagent": "^2.0.36",
     "body-parser": "^1.16.0",
     "debug": "^2.6.1",
@@ -17,17 +18,24 @@
     "ejs": "^2.5.5",
     "express": "^4.14.0",
     "minimist": "^1.2.0",
+    "mocha": "^3.2.0",
     "path": "^0.12.7",
     "qr-image": "^3.2.0",
     "scuttlebot": "^9.4.3",
     "ssb-keys": "^7.0.3",
     "superagent": "^3.5.0",
+    "supertest": "^3.0.0",
+    "ts-node": "^2.1.0",
+    "tslint": "^4.5.1",
     "typescript": "^2.1.5"
   },
   "devDependencies": {},
   "scripts": {
     "compile": "tsc",
-    "start": "tsc && node dist/index --host $PUB_URL"
+    "start": "tsc && node dist/index --host $PUB_URL",
+    "lint": "tslint -c tslint.json src/**/*.ts src/*.ts",
+    "mocha": "mocha tests/*.ts tests/**/*.ts --require ts-node/register",
+    "test": "npm run lint && npm run mocha"
   },
   "engines": {
     "node": "6.9.1"
