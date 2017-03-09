@@ -7,7 +7,6 @@ import path = require('path');
 import qr = require('qr-image');
 import net = require('net');
 import swarm = require('discovery-swarm');
-import ternaryStream = require('ternary-stream');
 import createDebug = require('debug');
 
 const pkg = require('../package.json');
@@ -16,16 +15,8 @@ const debug = createDebug(pkg.name);
 const version = (/^(\d+\.\d+)\.\d+$/.exec(pkg.version) as RegExpExecArray)[1];
 
 let SBOT_PORT = 8008;
-const SWARM_PORT = sbotPortToSwarmPort(SBOT_PORT);
+const SWARM_PORT = 8007
 const HTTP_PORT = 80;
-
-function swarmPortToSbotPort(swarmPort) {
-  return swarmPort + 1;
-}
-
-function sbotPortToSwarmPort(sbotPort) {
-  return sbotPort - 1;
-}
 
 // Setup Scuttlebot ============================================================
 let argv = process.argv.slice(2);
@@ -57,7 +48,7 @@ interface QRSVG {
 
 const idQR: QRSVG = qr.svgObject(bot.id);
 
-bot.address((err, addr) => {
+bot.address((err: any, addr: string) => {
   if (err) {
     console.error(err);
     process.exit(1);
@@ -81,9 +72,16 @@ peer.join('ssb-discovery-swarm', {announce: true}, function () {
   debug('Joining discovery swarm under the channel "ssb-discovery-swarm"');
 });
 
-peer.on('connection', function (connection, _info) {
+interface PeerInfo {
+  id: Buffer | string;
+  host: string;
+  port: string | number;
+  _peername: any;
+}
+
+peer.on('connection', function (connection: net.Socket, _info: PeerInfo) {
   const info = _info;
-  info.id = info.id.toString('ascii');
+  info.id = (_info.id as Buffer).toString('ascii');
   if (info.id.indexOf(ID_PREFIX) === 0 && info.host && info.host !== config.host) {
     debug('Found discovery swarm peer %s:%s, %s', info.host, info.port, info._peername);
 
@@ -100,11 +98,11 @@ peer.on('connection', function (connection, _info) {
     const invitationUrl = `http://${remoteHost}/invited/json`;
     debug(`Asking SSB peer ${invitationUrl} for an invitation...`);
 
-    superagent(invitationUrl).end((err, res) => {
+    superagent(invitationUrl).end((err: any, res) => {
       if (err) {
         console.error(err);
       } else {
-        bot.invite.accept(res.body.invitation, (err2, results) => {
+        bot.invite.accept(res.body.invitation, (err2: any, results: any) => {
           if (err2) {
             console.error(err2);
           } else {
@@ -136,7 +134,7 @@ app.get('/' as Route, (req: express.Request, res: express.Response) => {
 });
 
 app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
-  bot.invite.create(1, (err, invitation) => {
+  bot.invite.create(1, (err: any, invitation: string) => {
     if (err) {
       console.error(err);
       process.exit(1);
@@ -152,7 +150,7 @@ app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
 });
 
 app.get('/invited/json' as Route, (req: express.Request, res: express.Response) => {
-  bot.invite.create(1, (err, invitation) => {
+  bot.invite.create(1, (err: any, invitation: string) => {
     if (err) {
       console.error(err);
       process.exit(1);
