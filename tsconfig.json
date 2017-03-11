@@ -21,6 +21,7 @@
      "./stub-typings/discovery-swarm.d.ts",
      "./stub-typings/qr-image.d.ts",
      "./stub-typings/scuttlebot.d.ts",
+     "./stub-typings/ssb-config.d.ts",
      "./stub-typings/ssb-keys.d.ts",
      "src/index.ts"
    ]
