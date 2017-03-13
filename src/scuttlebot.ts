@@ -147,15 +147,15 @@ export type SSBConfig = {
   [K in 'host']: FullSSBConfig[K];
 };
 
-export function createScuttlebot(): {bot: FullScuttlebot, config: FullSSBConfig} {
+export function createScuttlebot(): {ssbBot: FullScuttlebot, ssbConf: FullSSBConfig} {
   let argv = process.argv.slice(2);
   const i = argv.indexOf('--');
   const conf = argv.slice(i + 1);
   argv = ~i ? argv.slice(0, i) : argv;
 
-  const config: FullSSBConfig = confInject(process.env.ssb_appname, minimist(conf));
-  config.keys = ssbKeys.loadOrCreateSync(path.join(config.path, 'secret'));
-  config.port = SBOT_PORT;
+  const ssbConf: FullSSBConfig = confInject(process.env.ssb_appname, minimist(conf));
+  ssbConf.keys = ssbKeys.loadOrCreateSync(path.join(ssbConf.path, 'secret'));
+  ssbConf.port = SBOT_PORT;
   const createSbot = ssbClient
       .use(require('scuttlebot/plugins/plugins'))
       .use(require('scuttlebot/plugins/master'))
@@ -168,9 +168,9 @@ export function createScuttlebot(): {bot: FullScuttlebot, config: FullSSBConfig}
       .use(require('scuttlebot/plugins/local'))
       .use(require('scuttlebot/plugins/logging'))
       .use(require('scuttlebot/plugins/private'));
-  const bot: FullScuttlebot = createSbot(config);
+  const ssbBot: FullScuttlebot = createSbot(ssbConf);
 
-  bot.address((err: any, addr: string) => {
+  ssbBot.address((err: any, addr: string) => {
     if (err) {
       console.error(err);
       process.exit(1);
@@ -179,5 +179,5 @@ export function createScuttlebot(): {bot: FullScuttlebot, config: FullSSBConfig}
     }
   });
 
-  return {bot, config};
+  return {ssbBot, ssbConf};
 }
