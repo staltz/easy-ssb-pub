@@ -1,7 +1,7 @@
 import request = require('supertest');
 import assert = require('assert');
 import {Response} from '@types/supertest';
-import {createExpressApp} from '../src/http';
+import {createExpressApp} from './http';
 import htmlLooksLike = require('html-looks-like');
 
 describe('easy-ssb-pub http server', function () {
