@@ -3,6 +3,7 @@ import qr = require('qr-image');
 import {HTTP_PORT, debug} from './config';
 import {Scuttlebot} from './scuttlebot';
 import {Server} from 'http';
+import * as Rx from 'rxjs';
 
 interface QRSVG {
   size: number;
@@ -12,6 +13,11 @@ interface QRSVG {
 export interface Options {
   bot: Scuttlebot;
   port?: number;
+}
+
+function reportAndQuit(err: any) {
+  console.error(err);
+  process.exit(1);
 }
 
 /**
@@ -31,6 +37,8 @@ export function setupExpressApp(opts: Readonly<Options>): Server {
   type Route = '/' | '/invited' | '/invited/json';
 
   const idQR: QRSVG = qr.svgObject(opts.bot.id);
+  const createInvite = Rx.Observable.bindNodeCallback<string>(opts.bot.invite.create);
+  const oneInvite$ = createInvite(1);
 
   app.get('/' as Route, (req: express.Request, res: express.Response) => {
     res.render('index', {
@@ -41,31 +49,25 @@ export function setupExpressApp(opts: Readonly<Options>): Server {
   });
 
   app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
-    opts.bot.invite.create(1, (err: any, invitation: string) => {
-      if (err) {
-        console.error(err);
-        process.exit(1);
-      } else {
+    oneInvite$.subscribe({
+      next: (invitation: string) => {
         const qrCode = qr.svgObject(invitation) as QRSVG;
         res.render('invited', {
           invitation: invitation,
           qrSize: qrCode.size,
           qrPath: qrCode.path,
         });
-      }
+      },
+      error: reportAndQuit,
     });
   });
 
   app.get('/invited/json' as Route, (req: express.Request, res: express.Response) => {
-    opts.bot.invite.create(1, (err: any, invitation: string) => {
-      if (err) {
-        console.error(err);
-        process.exit(1);
-      } else {
-        res.json({
-          invitation: invitation,
-        });
-      }
+    oneInvite$.subscribe({
+      next: (invitation: string) => {
+        res.json({invitation: invitation});
+      },
+      error: reportAndQuit,
     });
   });
 

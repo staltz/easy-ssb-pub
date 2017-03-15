@@ -19,6 +19,7 @@
     "minimist": "^1.2.0",
     "path": "^0.12.7",
     "qr-image": "^3.2.0",
+    "rxjs": "^5.2.0",
     "scuttlebot": "^9.4.3",
     "ssb-keys": "^7.0.3",
     "superagent": "^3.5.0",
