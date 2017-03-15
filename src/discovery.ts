@@ -12,7 +12,6 @@ export interface PeerInfo {
   id: Buffer | string;
   host: string;
   port: string | number;
-  _peername: any;
 }
 
 export interface SwarmPeer {
@@ -96,7 +95,7 @@ export function setupDiscoveryPeer(opts: Readonly<Options>) {
     .filter(compatibleRemotePeer)
     .filter(versionsMatch)
     .do(p =>
-      debug('Found discovery swarm peer %s:%s, %s', p.host, p.port, p._peername),
+      debug('Found discovery swarm peer %s:%s', p.host, p.port),
     )
     .map(info => info.host)
     .mergeMap(remoteHost =>
