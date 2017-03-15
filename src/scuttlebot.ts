@@ -148,7 +148,11 @@ export type SSBConfig = {
   [K in 'host']: FullSSBConfig[K];
 };
 
-export function createScuttlebot(): {ssbBot: FullScuttlebot, ssbConf: FullSSBConfig} {
+/**
+ * Sets up and runs a Scuttlebot.
+ * @param {Options} opts
+ */
+export function setupScuttlebot(): {ssbBot: FullScuttlebot, ssbConf: FullSSBConfig} {
   let argv = process.argv.slice(2);
   const i = argv.indexOf('--');
   const conf = argv.slice(i + 1);
