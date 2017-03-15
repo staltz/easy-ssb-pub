@@ -128,7 +128,7 @@ export interface FullScuttlebot {
   };
   invite: {
     create: Function;
-    accept: Function;
+    accept(err: any, results: any): void;
   };
   block: {
     isBlocked: Function;

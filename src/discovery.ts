@@ -3,6 +3,7 @@ import superagent = require('superagent');
 import swarm = require('discovery-swarm');
 import {SWARM_PORT, SWARM_ID_PREFIX, version, debug} from './config';
 import {Scuttlebot, SSBConfig} from './scuttlebot';
+import * as Rx from 'rxjs';
 
 // Convert to ComVer:
 const localVersion = (/^(\d+\.\d+)\.\d+$/.exec(version) as RegExpExecArray)[1];
@@ -27,6 +28,49 @@ export interface Options {
   peer?: SwarmPeer;
 }
 
+function remotePeer$(peer: SwarmPeer): Rx.Observable<PeerInfo> {
+  return Rx.Observable.create(function subscribe(observer: Rx.Observer<PeerInfo>) {
+    try {
+      peer.on('connection', function (connection: net.Socket, info: PeerInfo) {
+        observer.next(info);
+      });
+    } catch (e) {
+      observer.error(e);
+    }
+  });
+}
+
+function makeIsCompatibleRemotePeer(host: string) {
+  /**
+   * Checks whether the remote peer is compatible with the local peer,
+   * whether they are meant for the same purpose.
+   * @param remoteInfo
+   */
+  return function compatibleRemotePeer(remoteInfo: PeerInfo): boolean {
+    const remoteId = (remoteInfo.id as Buffer).toString('ascii');
+    const hasSamePrefix = remoteId.indexOf(SWARM_ID_PREFIX) === 0;
+    const isHostNotLocal = remoteInfo.host !== host;
+    return hasSamePrefix && isHostNotLocal;
+  };
+}
+
+/**
+ * Checks whether the remote version matches the local version.
+ * @param remoteInfo
+ */
+function versionsMatch(remoteInfo: PeerInfo): boolean {
+    const remoteId = (remoteInfo.id as Buffer).toString('ascii');
+    const remoteVersion = remoteId.split(SWARM_ID_PREFIX)[1];
+    const remoteMajorVer = remoteVersion.split('.')[0];
+    const localMajorVer = localVersion.split('.')[0];
+    return remoteMajorVer === localMajorVer;
+}
+
+function requestInvite$(invitationUrl: string): Rx.Observable<superagent.Response> {
+  const request = superagent(invitationUrl);
+  return Rx.Observable.bindNodeCallback(request.end.bind(request))();
+}
+
 /**
  * Sets up and runs a discovery swarm peer. Either takes a peer as input in opts
  * or creates a peer from scratch.
@@ -44,40 +88,31 @@ export function setupDiscoveryPeer(opts: Readonly<Options>) {
   peer.join('ssb-discovery-swarm', {announce: true}, function () {
     debug('Joining discovery swarm under the channel "ssb-discovery-swarm"');
   });
+  const compatibleRemotePeer = makeIsCompatibleRemotePeer(opts.config.host);
+  const acceptInvite$: (invitation: string) => Rx.Observable<any> =
+    Rx.Observable.bindNodeCallback<any>(opts.bot.invite.accept);
 
-  peer.on('connection', function (connection: net.Socket, info: PeerInfo) {
-    const peerId = (info.id as Buffer).toString('ascii');
-    if (peerId.indexOf(SWARM_ID_PREFIX) === 0 && info.host !== opts.config.host) {
-      debug('Found discovery swarm peer %s:%s, %s', info.host, info.port, info._peername);
-
-      const remoteVersion = peerId.split(SWARM_ID_PREFIX)[1];
-      const remoteMajorVer = remoteVersion.split('.')[0];
-      const localMajorVer = localVersion.split('.')[0];
-      if (remoteMajorVer !== localMajorVer) {
-        debug(`Ignored peer easy-ssb-pub because of mismatching versions ` +
-          `${remoteVersion} (remote) and ${localVersion} (local).`);
-        return;
-      }
-
-      const remoteHost = info.host;
-      const invitationUrl = `http://${remoteHost}/invited/json`;
-      debug(`Asking SSB peer ${invitationUrl} for an invitation...`);
-
-      superagent(invitationUrl).end((err: any, res) => {
-        if (err) {
-          console.error(err);
-        } else {
-          opts.bot.invite.accept(res.body.invitation, (err2: any, results: any) => {
-            if (err2) {
-              console.error(err2);
-            } else {
-              debug('Successfully became "SSB friends" with remote peer ' + remoteHost);
-            }
-          });
-        }
-      });
-    }
-  });
+  remotePeer$(peer)
+    .filter(compatibleRemotePeer)
+    .filter(versionsMatch)
+    .do(p =>
+      debug('Found discovery swarm peer %s:%s, %s', p.host, p.port, p._peername),
+    )
+    .map(info => info.host)
+    .mergeMap(remoteHost =>
+      Rx.Observable.of(`http://${remoteHost}/invited/json`)
+        .do(url => debug(`Asking SSB peer ${url} for an invitation...`))
+        .switchMap(requestInvite$)
+        .map(res => res.body.invitation as string | undefined | null)
+        .filter(x => !!x)
+        .do(x => debug(`Got SSB invitation ${x}, will use it to locally...`))
+        .switchMap(acceptInvite$)
+        .do(() => debug(`Successfully became "SSB friends" with remote peer ${remoteHost}`)),
+    )
+    .subscribe({
+      next: () => {},
+      error: e => console.log(e),
+    });
 
   return peer;
 }
