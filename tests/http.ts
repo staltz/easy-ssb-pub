@@ -14,7 +14,7 @@ describe('easy-ssb-pub http server', function () {
       },
     };
 
-    const app = createExpressApp(scuttlebot, 4000);
+    const app = createExpressApp({bot: scuttlebot, port: 4000});
 
     request(app)
       .get('/')
@@ -59,7 +59,7 @@ describe('easy-ssb-pub http server', function () {
       },
     };
 
-    const app = createExpressApp(scuttlebot, 4001);
+    const app = createExpressApp({bot: scuttlebot, port: 4001});
 
     request(app)
       .get('/invited')
@@ -109,7 +109,7 @@ describe('easy-ssb-pub http server', function () {
       },
     };
 
-    const app = createExpressApp(scuttlebot, 4002);
+    const app = createExpressApp({bot: scuttlebot, port: 4002});
 
     request(app)
       .get('/invited/json')

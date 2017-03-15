@@ -8,7 +8,14 @@ interface QRSVG {
   path: string;
 }
 
-export function createExpressApp(bot: Scuttlebot, port: number = HTTP_PORT): express.Express {
+export interface Options {
+  bot: Scuttlebot;
+  port?: number;
+}
+
+export function createExpressApp(opts: Readonly<Options>): express.Express {
+  const port = opts.port || HTTP_PORT;
+
   const app = express();
   app.use(express.static(__dirname + '/public'));
   app.use(require('body-parser').urlencoded({ extended: true }));
@@ -18,18 +25,18 @@ export function createExpressApp(bot: Scuttlebot, port: number = HTTP_PORT): exp
 
   type Route = '/' | '/invited' | '/invited/json';
 
-  const idQR: QRSVG = qr.svgObject(bot.id);
+  const idQR: QRSVG = qr.svgObject(opts.bot.id);
 
   app.get('/' as Route, (req: express.Request, res: express.Response) => {
     res.render('index', {
-      id: bot.id,
+      id: opts.bot.id,
       qrSize: idQR.size,
       qrPath: idQR.path,
     });
   });
 
   app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
-    bot.invite.create(1, (err: any, invitation: string) => {
+    opts.bot.invite.create(1, (err: any, invitation: string) => {
       if (err) {
         console.error(err);
         process.exit(1);
@@ -45,7 +52,7 @@ export function createExpressApp(bot: Scuttlebot, port: number = HTTP_PORT): exp
   });
 
   app.get('/invited/json' as Route, (req: express.Request, res: express.Response) => {
-    bot.invite.create(1, (err: any, invitation: string) => {
+    opts.bot.invite.create(1, (err: any, invitation: string) => {
       if (err) {
         console.error(err);
         process.exit(1);

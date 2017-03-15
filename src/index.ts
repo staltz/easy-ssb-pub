@@ -4,4 +4,4 @@ import {createExpressApp} from './http';
 
 const {ssbBot, ssbConf} = createScuttlebot();
 createDiscoveryPeer(ssbBot, ssbConf);
-createExpressApp(ssbBot);
+createExpressApp({bot: ssbBot});
