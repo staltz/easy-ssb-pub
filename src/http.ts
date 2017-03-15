@@ -2,6 +2,7 @@ import express = require('express');
 import qr = require('qr-image');
 import {HTTP_PORT, debug} from './config';
 import {Scuttlebot} from './scuttlebot';
+import {Server} from 'http';
 
 interface QRSVG {
   size: number;
@@ -13,7 +14,11 @@ export interface Options {
   port?: number;
 }
 
-export function createExpressApp(opts: Readonly<Options>): express.Express {
+/**
+ * Sets up and runs an Express HTTP/HTML server.
+ * @param {Options} opts
+ */
+export function setupExpressApp(opts: Readonly<Options>): Server {
   const port = opts.port || HTTP_PORT;
 
   const app = express();
@@ -64,9 +69,7 @@ export function createExpressApp(opts: Readonly<Options>): express.Express {
     });
   });
 
-  app.listen(app.get('port'), () => {
+  return app.listen(app.get('port'), () => {
     debug('Express app is running on port %s', app.get('port'));
   });
-
-  return app;
 }

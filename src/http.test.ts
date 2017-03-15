@@ -1,7 +1,7 @@
 import request = require('supertest');
 import assert = require('assert');
 import {Response} from '@types/supertest';
-import {createExpressApp} from './http';
+import {setupExpressApp} from './http';
 import htmlLooksLike = require('html-looks-like');
 
 describe('easy-ssb-pub http server', function () {
@@ -14,9 +14,9 @@ describe('easy-ssb-pub http server', function () {
       },
     };
 
-    const app = createExpressApp({bot: scuttlebot, port: 4000});
+    const server = setupExpressApp({bot: scuttlebot, port: 4000});
 
-    request(app)
+    request(server)
       .get('/')
       .expect('Content-Type', 'text/html; charset=utf-8')
       .expect(200)
@@ -44,7 +44,7 @@ describe('easy-ssb-pub http server', function () {
         `;
         htmlLooksLike((res as any).text, expected);
       })
-      .end(done);
+      .end(() => server.close(done));
   });
 
   it('should display invitation on route "/invited"', function (done) {
@@ -59,9 +59,9 @@ describe('easy-ssb-pub http server', function () {
       },
     };
 
-    const app = createExpressApp({bot: scuttlebot, port: 4001});
+    const server = setupExpressApp({bot: scuttlebot, port: 4000});
 
-    request(app)
+    request(server)
       .get('/invited')
       .expect('Content-Type', 'text/html; charset=utf-8')
       .expect(200)
@@ -94,7 +94,7 @@ describe('easy-ssb-pub http server', function () {
         `;
         htmlLooksLike((res as any).text, expected);
       })
-      .end(done);
+      .end(() => server.close(done));
   });
 
   it('should display JSON invitation on route "/invited/json"', function (done) {
@@ -109,15 +109,15 @@ describe('easy-ssb-pub http server', function () {
       },
     };
 
-    const app = createExpressApp({bot: scuttlebot, port: 4002});
+    const server = setupExpressApp({bot: scuttlebot, port: 4000});
 
-    request(app)
+    request(server)
       .get('/invited/json')
       .expect('Content-Type', 'application/json; charset=utf-8')
       .expect(200)
       .expect((res: Response) => {
         assert.strictEqual(JSON.stringify(res.body), `{"invitation":"${invitation}"}`);
       })
-      .end(done);
+      .end(() => server.close(done));
   });
 });
