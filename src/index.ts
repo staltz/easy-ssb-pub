@@ -1,7 +1,7 @@
 import {createScuttlebot} from './scuttlebot';
-import {createDiscoveryPeer} from './discovery';
+import {setupDiscoveryPeer} from './discovery';
 import {setupExpressApp} from './http';
 
 const {ssbBot, ssbConf} = createScuttlebot();
-createDiscoveryPeer(ssbBot, ssbConf);
+setupDiscoveryPeer({bot: ssbBot, config: ssbConf});
 setupExpressApp({bot: ssbBot});

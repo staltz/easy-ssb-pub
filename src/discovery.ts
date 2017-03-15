@@ -7,36 +7,54 @@ import {Scuttlebot, SSBConfig} from './scuttlebot';
 // Convert to ComVer:
 const localVersion = (/^(\d+\.\d+)\.\d+$/.exec(version) as RegExpExecArray)[1];
 
-interface PeerInfo {
+export interface PeerInfo {
   id: Buffer | string;
   host: string;
   port: string | number;
   _peername: any;
 }
 
-export function createDiscoveryPeer(bot: Scuttlebot, config: SSBConfig) {
-  const peer = swarm({
+export interface SwarmPeer {
+  listen(port: number): void;
+  join(key: string, opts: any, cb: Function): void;
+  on(event: 'connection', cb: (connection: net.Socket, info: PeerInfo) => void): void;
+}
+
+export interface Options {
+  bot: Scuttlebot;
+  config: SSBConfig;
+  port?: number;
+  peer?: SwarmPeer;
+}
+
+/**
+ * Sets up and runs a discovery swarm peer. Either takes a peer as input in opts
+ * or creates a peer from scratch.
+ * @param {Options} opts
+ */
+export function setupDiscoveryPeer(opts: Readonly<Options>) {
+  const port = opts.port || SWARM_PORT;
+  const peer: SwarmPeer = opts.peer || swarm({
     maxConnections: 1000,
     utp: true,
     id: SWARM_ID_PREFIX + localVersion,
   });
 
-  peer.listen(SWARM_PORT);
+  peer.listen(port);
   peer.join('ssb-discovery-swarm', {announce: true}, function () {
     debug('Joining discovery swarm under the channel "ssb-discovery-swarm"');
   });
 
-  peer.on('connection', function (connection: net.Socket, _info: PeerInfo) {
-    const info = _info;
-    info.id = (_info.id as Buffer).toString('ascii');
-    if (info.id.indexOf(SWARM_ID_PREFIX) === 0 && info.host && info.host !== config.host) {
+  peer.on('connection', function (connection: net.Socket, info: PeerInfo) {
+    const peerId = (info.id as Buffer).toString('ascii');
+    if (peerId.indexOf(SWARM_ID_PREFIX) === 0 && info.host !== opts.config.host) {
       debug('Found discovery swarm peer %s:%s, %s', info.host, info.port, info._peername);
 
-      const remoteVersion = info.id.split(SWARM_ID_PREFIX)[1];
+      const remoteVersion = peerId.split(SWARM_ID_PREFIX)[1];
       const remoteMajorVer = remoteVersion.split('.')[0];
       const localMajorVer = localVersion.split('.')[0];
       if (remoteMajorVer !== localMajorVer) {
-        debug(`Ignored peer easy-ssb-pub because of mismatching versions` +
+        debug(`Ignored peer easy-ssb-pub because of mismatching versions ` +
           `${remoteVersion} (remote) and ${localVersion} (local).`);
         return;
       }
@@ -49,7 +67,7 @@ export function createDiscoveryPeer(bot: Scuttlebot, config: SSBConfig) {
         if (err) {
           console.error(err);
         } else {
-          bot.invite.accept(res.body.invitation, (err2: any, results: any) => {
+          opts.bot.invite.accept(res.body.invitation, (err2: any, results: any) => {
             if (err2) {
               console.error(err2);
             } else {
