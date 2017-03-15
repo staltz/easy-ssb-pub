@@ -1,8 +1,9 @@
 import net = require('net');
 import superagent = require('superagent');
 import swarm = require('discovery-swarm');
-import {SWARM_PORT, SWARM_ID_PREFIX, version, debug} from './config';
-import {Scuttlebot, SSBConfig} from './scuttlebot';
+import {SWARM_PORT, SWARM_ID_PREFIX, MAX_CONNECTED_PUBS, version, debug} from './config';
+import {Scuttlebot, SSBConfig, SSBPeer} from './scuttlebot';
+import {Pick2} from './utils';
 import * as Rx from 'rxjs';
 
 // Convert to ComVer:
@@ -20,9 +21,12 @@ export interface SwarmPeer {
   on(event: 'connection', cb: (connection: net.Socket, info: PeerInfo) => void): void;
 }
 
+export type SBotGossipPeers = Pick2<Scuttlebot, 'gossip', 'peers'>;
+export type SBotInvite = Pick<Scuttlebot, 'invite'>;
+
 export interface Options {
-  bot: Scuttlebot;
-  config: SSBConfig;
+  bot: SBotGossipPeers & SBotInvite;
+  config: Pick<SSBConfig, 'host'>;
   port?: number;
   peer?: SwarmPeer;
 }
@@ -54,6 +58,14 @@ function makeIsCompatibleRemotePeer(host: string) {
 }
 
 /**
+ * Checks whether the remote discovery peer has a valid (non-null) host.
+ * @param remoteInfo
+ */
+function validHost(remoteInfo: PeerInfo): boolean {
+  return !!remoteInfo.host;
+}
+
+/**
  * Checks whether the remote version matches the local version.
  * @param remoteInfo
  */
@@ -63,6 +75,18 @@ function versionsMatch(remoteInfo: PeerInfo): boolean {
     const remoteMajorVer = remoteVersion.split('.')[0];
     const localMajorVer = localVersion.split('.')[0];
     return remoteMajorVer === localMajorVer;
+}
+
+function connectedPub(peer: SSBPeer): boolean {
+  return peer.state === 'connected';
+}
+
+/**
+ * Checks whether the remote peer isnt yet in the locally-known connected pubs.
+ * @param remoteInfo
+ */
+function isNewRemotePeer(remoteInfo: PeerInfo, pubs: Array<SSBPeer>): boolean {
+  return pubs.filter(connectedPub).every(pub => pub.host !== remoteInfo.host);
 }
 
 function requestInvite$(invitationUrl: string): Rx.Observable<superagent.Response> {
@@ -88,12 +112,17 @@ export function setupDiscoveryPeer(opts: Readonly<Options>) {
     debug('Joining discovery swarm under the channel "ssb-discovery-swarm"');
   });
   const compatibleRemotePeer = makeIsCompatibleRemotePeer(opts.config.host);
+  const expectingMore = () =>
+    opts.bot.gossip.peers().filter(connectedPub).length < MAX_CONNECTED_PUBS;
   const acceptInvite$: (invitation: string) => Rx.Observable<any> =
     Rx.Observable.bindNodeCallback<any>(opts.bot.invite.accept);
 
   remotePeer$(peer)
+    .filter(expectingMore)
+    .filter(validHost)
     .filter(compatibleRemotePeer)
     .filter(versionsMatch)
+    .filter(info => isNewRemotePeer(info, opts.bot.gossip.peers()))
     .do(p =>
       debug('Found discovery swarm peer %s:%s', p.host, p.port),
     )

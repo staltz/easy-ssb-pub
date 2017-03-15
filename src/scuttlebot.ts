@@ -6,7 +6,7 @@ import path = require('path');
 import {SBOT_PORT, debug} from './config';
 import fs = require('fs');
 
-export interface FullSSBConfig {
+export interface SSBConfig {
   party: boolean;
   host: string;
   port: number;
@@ -41,7 +41,16 @@ export interface FullSSBConfig {
   };
 }
 
-export interface FullScuttlebot {
+export interface SSBPeer {
+  state: 'connecting' | 'connected' | 'disconnecting' | null;
+  host: string;
+  port: number;
+  key: string;
+  source: 'pub' | 'manual' | 'local';
+  announcers: number;
+}
+
+export interface Scuttlebot {
   peers: any;
   publicKey: Buffer;
   auth: Function;
@@ -93,7 +102,7 @@ export interface FullScuttlebot {
   };
   gossip: {
     wakeup: number;
-    peers: Function;
+    peers(): Array<SSBPeer>;
     get: Function;
     connect: Function;
     disconnect: Function;
@@ -140,25 +149,17 @@ export interface FullScuttlebot {
   };
 }
 
-// We pick only the properties we need, to make it easier to mock these in tests
-export type Scuttlebot = {
-  [K in 'id' | 'invite']: FullScuttlebot[K];
-};
-export type SSBConfig = {
-  [K in 'host']: FullSSBConfig[K];
-};
-
 /**
  * Sets up and runs a Scuttlebot.
  * @param {Options} opts
  */
-export function setupScuttlebot(): {ssbBot: FullScuttlebot, ssbConf: FullSSBConfig} {
+export function setupScuttlebot(): {ssbBot: Scuttlebot, ssbConf: SSBConfig} {
   let argv = process.argv.slice(2);
   const i = argv.indexOf('--');
   const conf = argv.slice(i + 1);
   argv = ~i ? argv.slice(0, i) : argv;
 
-  const ssbConf: FullSSBConfig = confInject(process.env.ssb_appname, minimist(conf));
+  const ssbConf: SSBConfig = confInject(process.env.ssb_appname, minimist(conf));
   ssbConf.keys = ssbKeys.loadOrCreateSync(path.join(ssbConf.path, 'secret'));
   ssbConf.port = SBOT_PORT;
   const createSbot = ssbClient
@@ -173,7 +174,7 @@ export function setupScuttlebot(): {ssbBot: FullScuttlebot, ssbConf: FullSSBConf
       .use(require('scuttlebot/plugins/local'))
       .use(require('scuttlebot/plugins/logging'))
       .use(require('scuttlebot/plugins/private'));
-  const ssbBot: FullScuttlebot = createSbot(ssbConf);
+  const ssbBot: Scuttlebot = createSbot(ssbConf);
 
   const manifestFile = path.join(ssbConf.path, 'manifest.json');
   fs.writeFileSync(manifestFile, JSON.stringify(ssbBot.getManifest(), null, 2));

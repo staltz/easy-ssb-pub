@@ -11,7 +11,7 @@ interface QRSVG {
 }
 
 export interface Options {
-  bot: Scuttlebot;
+  bot: Pick<Scuttlebot, 'id' | 'invite'>;
   port?: number;
 }
 
