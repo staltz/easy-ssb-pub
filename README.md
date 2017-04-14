@@ -16,6 +16,7 @@ However, to join the wider SSB network, you must get a dedicated invitation from
 - [http://94.237.35.82/](http://94.237.35.82/)
 - [http://pub.locksmithdon.net/](http://pub.locksmithdon.net/)
 - [http://104.236.163.171/](http://104.236.163.171/)
+- [http://ssbagents.southcentralus.cloudapp.azure.com](http://ssbagents.southcentralus.cloudapp.azure.com)
 - [(add yours here)](https://github.com/staltz/easy-ssb-pub/edit/master/README.md)
 
 ## How to deploy
