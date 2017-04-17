@@ -4,6 +4,7 @@ import ssbKeys = require('ssb-keys');
 import confInject = require('ssb-config/inject');
 import path = require('path');
 import {SBOT_PORT, debug} from './config';
+import fs = require('fs');
 
 export interface FullSSBConfig {
   party: boolean;
@@ -169,6 +170,9 @@ export function createScuttlebot(): {ssbBot: FullScuttlebot, ssbConf: FullSSBCon
       .use(require('scuttlebot/plugins/logging'))
       .use(require('scuttlebot/plugins/private'));
   const ssbBot: FullScuttlebot = createSbot(ssbConf);
+
+  const manifestFile = path.join(ssbConf.path, 'manifest.json');
+  fs.writeFileSync(manifestFile, JSON.stringify(ssbBot.getManifest(), null, 2));
 
   ssbBot.address((err: any, addr: string) => {
     if (err) {
