@@ -21,18 +21,20 @@
     "qr-image": "^3.2.0",
     "rxjs": "^5.2.0",
     "scuttlebot": "^9.4.3",
+    "ssb-config": "2.2.0",
     "ssb-keys": "^7.0.3",
     "superagent": "^3.5.0",
-    "typescript": "^2.2.1"
+    "typescript": "^2.3.2"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.39",
+    "@types/node": "^7.0.18",
     "@types/supertest": "^2.0.0",
     "html-looks-like": "^1.0.1",
     "mocha": "^3.2.0",
     "supertest": "^3.0.0",
-    "ts-node": "^2.1.0",
-    "tslint": "^4.5.1"
+    "ts-node": "^3.0.4",
+    "tslint": "^5.2.0"
   },
   "scripts": {
     "compile": "tsc",
