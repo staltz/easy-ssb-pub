@@ -4,20 +4,13 @@
 
 ![screenshot](screenshot.png)
 
-[Secure Scuttlebutt](https://scuttlebot.io/) (SSB) is an impressive peer-to-peer network that can be used for metadata, identity, and particularly, messaging. SSB is an ideal protocol for a social network. There is already a social network on SSB, called [Patchwork](https://github.com/ssbc/patchwork).
+[Secure Scuttlebutt](https://scuttlebutt.nz) (SSB) is an impressive peer-to-peer network that can be used for metadata, identity, and particularly, messaging. SSB is an ideal protocol for a social network. There is already a social network on SSB, called [Patchwork](https://github.com/ssbc/patchwork).
 
 However, to join the wider SSB network, you must get a dedicated invitation from a "Pub" server. Also, hosting a Pub server is not the easiest task. In order to improve adoption of SSB, this project makes it easy to deploy an SSB Pub. Once the Pub is running, it has a light frontend page where anyone can get freely request a fresh invitation.
 
 ## Visit one of these
 
-#### If you want to visit an Easy SSB Pub, here are a few known links (potentially ephemeral or broken):
-
-- [http://198.211.122.115/](http://198.211.122.115/)
-- [http://94.237.35.82/](http://94.237.35.82/)
-- [http://pub.locksmithdon.net/](http://pub.locksmithdon.net/)
-- [http://104.236.163.171/](http://104.236.163.171/)
-- [http://ssbagents.southcentralus.cloudapp.azure.com](http://ssbagents.southcentralus.cloudapp.azure.com)
-- [(add yours here)](https://github.com/staltz/easy-ssb-pub/edit/master/README.md)
+Check the [Pub Registry](https://github.com/ssbc/scuttlebot/wiki/Pub-Servers).
 
 ## How to deploy
 
