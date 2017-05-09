@@ -19,6 +19,7 @@
   },
    "files": [
      "./stub-typings/discovery-swarm.d.ts",
+     "./stub-typings/pull-stream.d.ts",
      "./stub-typings/qr-image.d.ts",
      "./stub-typings/scuttlebot.d.ts",
      "./stub-typings/ssb-config.d.ts",

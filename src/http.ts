@@ -3,7 +3,8 @@ import qr = require('qr-image');
 import {HTTP_PORT, debug} from './config';
 import {Scuttlebot} from './scuttlebot';
 import {Server} from 'http';
-import * as Rx from 'rxjs';
+import {Pick2} from './utils';
+import pull = require('pull-stream');
 
 interface QRSVG {
   size: number;
@@ -11,13 +12,31 @@ interface QRSVG {
 }
 
 export interface Options {
-  bot: Pick<Scuttlebot, 'id' | 'invite'>;
+  bot:
+    Pick<Scuttlebot, 'id'> &
+    Pick2<Scuttlebot, 'invite', 'create'>;
   port?: number;
 }
 
-function reportAndQuit(err: any) {
-  console.error(err);
-  process.exit(1);
+function reportIfError(err: any) {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
+}
+
+export type PullStream<T> = (end: boolean | any, cb: (err: any, data?: T) => void) => void;
+
+function createInvite(sbot: any, n: number): PullStream<string> {
+  return function readInvite(end: boolean | any, cb: (err: any, data?: string) => void) {
+    if (end === true) {
+      return;
+    }
+    if (end) {
+      return cb(end);
+    }
+    sbot.invite.create(n, cb);
+  };
 }
 
 /**
@@ -37,8 +56,6 @@ export function setupExpressApp(opts: Readonly<Options>): Server {
   type Route = '/' | '/invited' | '/invited/json';
 
   const idQR: QRSVG = qr.svgObject(opts.bot.id);
-  const createInvite = Rx.Observable.bindNodeCallback<string>(opts.bot.invite.create);
-  const oneInvite$ = createInvite(1);
 
   app.get('/' as Route, (req: express.Request, res: express.Response) => {
     res.render('index', {
@@ -49,26 +66,28 @@ export function setupExpressApp(opts: Readonly<Options>): Server {
   });
 
   app.get('/invited' as Route, (req: express.Request, res: express.Response) => {
-    oneInvite$.subscribe({
-      next: (invitation: string) => {
+    pull(
+      createInvite(opts.bot, 1),
+      pull.take(1),
+      pull.drain((invitation: string) => {
         const qrCode = qr.svgObject(invitation) as QRSVG;
         res.render('invited', {
           invitation: invitation,
           qrSize: qrCode.size,
           qrPath: qrCode.path,
         });
-      },
-      error: reportAndQuit,
-    });
+      }, reportIfError),
+    );
   });
 
   app.get('/invited/json' as Route, (req: express.Request, res: express.Response) => {
-    oneInvite$.subscribe({
-      next: (invitation: string) => {
-        res.json({invitation: invitation});
-      },
-      error: reportAndQuit,
-    });
+    pull(
+      createInvite(opts.bot, 1),
+      pull.take(1),
+      pull.drain((invitation: string) => {
+        res.json({invitation});
+      }, reportIfError),
+    );
   });
 
   return app.listen(app.get('port'), () => {

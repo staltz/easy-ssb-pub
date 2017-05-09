@@ -10,7 +10,6 @@ describe('easy-ssb-pub http server', function () {
       id: '@FakeIdGoesHere=.ed25519',
       invite: {
         create: () => {},
-        accept: () => {},
       },
     };
 
@@ -55,7 +54,6 @@ describe('easy-ssb-pub http server', function () {
         create: (amount: number, cb: Function) => {
           cb(null, invitation);
         },
-        accept: () => {},
       },
     };
 
@@ -105,7 +103,6 @@ describe('easy-ssb-pub http server', function () {
         create: (amount: number, cb: Function) => {
           cb(null, invitation);
         },
-        accept: () => {},
       },
     };
 

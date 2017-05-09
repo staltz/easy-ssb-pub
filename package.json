@@ -18,6 +18,7 @@
     "express": "^4.14.0",
     "minimist": "^1.2.0",
     "path": "^0.12.7",
+    "pull-stream": "^3.5.0",
     "qr-image": "^3.2.0",
     "rxjs": "^5.2.0",
     "scuttlebot": "^9.4.3",
