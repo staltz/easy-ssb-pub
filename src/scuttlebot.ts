@@ -58,6 +58,7 @@ export interface Scuttlebot {
   getAddress: Function;
   manifest: Function;
   getManifest: Function;
+  conf: SSBConfig;
   connect: Function;
   close: Function;
   /**
@@ -173,12 +174,14 @@ export function setupScuttlebot(): {ssbBot: Scuttlebot, ssbConf: SSBConfig} {
       .use(require('scuttlebot/plugins/block'))
       .use(require('scuttlebot/plugins/local'))
       .use(require('scuttlebot/plugins/logging'))
+      .use(require('ssb-query'))
       .use(require('scuttlebot/plugins/private'));
   const ssbBot: Scuttlebot = createSbot(ssbConf);
 
   const manifestFile = path.join(ssbConf.path, 'manifest.json');
   fs.writeFileSync(manifestFile, JSON.stringify(ssbBot.getManifest(), null, 2));
 
+  ssbBot.conf = ssbConf;
   ssbBot.address((err: any, addr: string) => {
     if (err) {
       console.error(err);

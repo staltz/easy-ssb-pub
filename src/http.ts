@@ -5,6 +5,7 @@ import {Scuttlebot} from './scuttlebot';
 import {Server} from 'http';
 import {Pick2} from './utils';
 import pull = require('pull-stream');
+import makeServeViewer = require('./viewer/index');
 
 interface QRSVG {
   size: number;
@@ -53,9 +54,10 @@ export function setupExpressApp(opts: Readonly<Options>): Server {
   app.set('views', __dirname + '/../pages');
   app.set('view engine', 'ejs');
 
-  type Route = '/' | '/invited' | '/invited/json';
+  type Route = '/' | '/invited' | '/invited/json' | '/view/*';
 
   const idQR: QRSVG = qr.svgObject(opts.bot.id);
+  const serveViewer = makeServeViewer(opts.bot, {viewer: {base: '/view/'}});
 
   app.get('/' as Route, (req: express.Request, res: express.Response) => {
     res.render('index', {
@@ -89,6 +91,8 @@ export function setupExpressApp(opts: Readonly<Options>): Server {
       }, reportIfError),
     );
   });
+
+  app.get('/view/*' as Route, serveViewer);
 
   return app.listen(app.get('port'), () => {
     debug('Express app is running on port %s', app.get('port'));
