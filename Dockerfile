@@ -25,7 +25,8 @@ RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
 COPY package.json /usr/src/app/
-RUN . $HOME/.nvm/nvm.sh && npm install
+RUN . $HOME/.nvm/nvm.sh && npm install -g yarn
+RUN . $HOME/.nvm/nvm.sh && yarn
 COPY . /usr/src/app
 
 EXPOSE 80
