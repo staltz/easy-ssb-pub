@@ -254,8 +254,8 @@ module.exports = function makeServe(sbot, config) {
       msg.value.content.vote.link[0] == "%"
     )
       getMsg(msg.value.content.vote.link, function(err, linkedMsg) {
-        if (err) return cb(err);
-        msg.value.content.vote.linkedText = linkedMsg.value.content.text;
+        if (linkedMsg)
+          msg.value.content.vote.linkedText = linkedMsg.value.content.text;
         cb(null, msg);
       });
     else cb(null, msg);
