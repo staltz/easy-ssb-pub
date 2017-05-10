@@ -3,7 +3,7 @@ services:
   easy_ssb_pub:
     build: .
     environment:
-      PUB_URL: "${PUB_URL}"
+      HOST: "${HOST}"
       HOME: "${HOME}"
       DEBUG: "${DEBUG}"
     ports:
