@@ -20,7 +20,8 @@ You will need a server that supports a TCP sockets on ports 80, 8008 and 8007. T
 2. Install [Docker](https://docs.docker.com/engine/installation/) and [Docker Compose](https://docs.docker.com/compose/install/)
 3. `git clone https://github.com/staltz/easy-ssb-pub.git`
 4. `cd easy-ssb-pub`
-5. `PUB_URL=publicurltoyourserv.er docker-compose up -d`
+5. `HOST=publicurltoyourserv.er docker-compose up -d`
+6. Open `http://publicurltoyourserver.er` in your browser
 
 After the container has been created, stop/start/restart the server using:
 
@@ -32,7 +33,7 @@ After the container has been created, stop/start/restart the server using:
 
 1. Access your server via shell (e.g. SSH)
 2. `docker pull staltz/easy-ssb-pub`
-3. `docker run -e "PUB_URL=publicurltoyourserv.er" -v $HOME/.ssb:/root/.ssb -p 80:80 -p 8008:8008 -p 8007:8007 -m 450M --memory-swap 1G --restart=unless-stopped --name ssb-pub -d staltz/easy-ssb-pub`
+3. `docker run -e "HOST=publicurltoyourserv.er" -v $HOME/.ssb:/root/.ssb -p 80:80 -p 8008:8008 -p 8007:8007 -m 450M --memory-swap 1G --restart=unless-stopped --name ssb-pub -d staltz/easy-ssb-pub`
 
 ### OR
 
@@ -43,4 +44,4 @@ After the container has been created, stop/start/restart the server using:
 5. `nvm install v6.9.1`
 6. `git clone https://github.com/staltz/easy-ssb-pub.git`
 7. `npm install`
-8. `PUB_URL=publicurltoyourserv.er npm start`
+8. `HOST=publicurltoyourserv.er npm start`
