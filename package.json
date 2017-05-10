@@ -51,7 +51,7 @@
   },
   "scripts": {
     "compile": "tsc",
-    "start": "tsc && node dist/index --host $HOST",
+    "start": "tsc && node dist/index --host $HOST --no-discovery",
     "lint": "tslint -c tslint.json src/**/*.ts src/*.ts",
     "mocha": "mocha src/**/*.test.ts --require ts-node/register",
     "test": "npm run lint && npm run mocha"

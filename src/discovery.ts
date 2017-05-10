@@ -26,7 +26,7 @@ export type SBotInvite = Pick<Scuttlebot, 'invite'>;
 
 export interface Options {
   bot: SBotGossipPeers & SBotInvite;
-  config: Pick<SSBConfig, 'host'>;
+  config: Pick<SSBConfig, 'host'> & Pick<SSBConfig, 'discovery'>;
   port?: number;
   peer?: SwarmPeer;
 }
@@ -100,6 +100,9 @@ function requestInvite$(invitationUrl: string): Rx.Observable<superagent.Respons
  * @param {Options} opts
  */
 export function setupDiscoveryPeer(opts: Readonly<Options>) {
+  if (opts.config.discovery === false) {
+    return;
+  }
   const port = opts.port || SWARM_PORT;
   const peer: SwarmPeer = opts.peer || swarm({
     maxConnections: 1000,

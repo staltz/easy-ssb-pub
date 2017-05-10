@@ -13,6 +13,7 @@ export interface SSBConfig {
   timeout: number;
   pub: boolean;
   local: boolean;
+  discovery?: boolean;
   friends: {
     dunbar: number;
     hops: number;
