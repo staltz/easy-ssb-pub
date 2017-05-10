@@ -2,76 +2,33 @@ var fs = require("fs");
 var qs = require("querystring");
 var path = require("path");
 var crypto = require("crypto");
-var cat = require("pull-cat");
 var pull = require("pull-stream");
 var paramap = require("pull-paramap");
-var marked = require("ssb-marked");
 var sort = require("ssb-sort");
 var toPull = require("stream-to-pull-stream");
 var memo = require("asyncmemo");
 var lru = require("lrucache");
-var htime = require("human-time");
-var emojis = require("emoji-named-characters");
 var serveEmoji = require("emoji-server")();
 var createDebug = require('debug');
+var {
+  MdRenderer,
+  renderEmoji,
+  formatMsgs,
+  wrapPage,
+  renderThread
+} = require('./render');
 
 var debug = createDebug('ssb-viewer');
-var emojiDir = path.join(require.resolve("emoji-named-characters"), "../pngs");
 var appHash = hash([fs.readFileSync(__filename)]);
 
 var urlIdRegex = /^(?:\/(([%&@]|%25|%26|%40)(?:[A-Za-z0-9\/+]|%2[Ff]|%2[Bb]){43}(?:=|%3[Dd])\.(?:sha256|ed25519))(?:\.([^?]*))?|(\/.*?))(?:\?(.*))?$/;
 
-function MdRenderer(opts) {
-  marked.Renderer.call(this, {});
-  this.opts = opts;
-}
-MdRenderer.prototype = new marked.Renderer();
-
-MdRenderer.prototype.urltransform = function(href) {
-  if (!href) return false;
-  switch (href[0]) {
-    case "#":
-      return this.opts.base + "channel/" + href.slice(1);
-    case "%":
-      return this.opts.msg_base + encodeURIComponent(href);
-    case "@":
-      return this.opts.feed_base + encodeURIComponent(href);
-    case "&":
-      return this.opts.blob_base + encodeURIComponent(href);
-  }
-  if (href.indexOf("javascript:") === 0) return false;
-  return href;
-};
-
-MdRenderer.prototype.image = function(href, title, text) {
-  return (
-    '<img src="' +
-    this.opts.img_base +
-    escape(href) +
-    '"' +
-    ' alt="' +
-    text +
-    '"' +
-    (title ? ' title="' + title + '"' : "") +
-    (this.options.xhtml ? "/>" : ">")
-  );
-};
-
-function renderEmoji(emoji) {
-  var opts = this.renderer.opts;
-  return emoji in emojis
-    ? '<img src="' +
-        opts.emoji_base +
-        escape(emoji) +
-        '.png"' +
-        ' alt=":' +
-        escape(emoji) +
-        ':"' +
-        ' title=":' +
-        escape(emoji) +
-        ':"' +
-        ' class="ssb-emoji" height="16" width="16">'
-    : ":" + emoji + ":";
+function hash(arr) {
+  return arr
+    .reduce(function(hash, item) {
+      return hash.update(String(item));
+    }, crypto.createHash("sha256"))
+    .digest("base64");
 }
 
 module.exports = function makeServe(sbot, config) {
@@ -399,14 +356,6 @@ function getMsgWithValue(sbot, id, cb) {
   });
 }
 
-function escape(str) {
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 function respond(res, status, message) {
   res.writeHead(status);
   res.end(message);
@@ -483,214 +432,4 @@ function prepend(fn, arg) {
       read(abort, cb);
     };
   };
-}
-
-function formatMsgs(id, ext, opts) {
-  switch (ext || "html") {
-    case "html":
-      return pull(renderThread(opts), wrapPage(id));
-    case "js":
-      return pull(renderThread(opts), wrapJSEmbed(opts));
-    case "json":
-      return wrapJSON();
-    default:
-      return null;
-  }
-}
-
-function wrap(before, after) {
-  return function(read) {
-    return cat([pull.once(before), read, pull.once(after)]);
-  };
-}
-
-function renderThread(opts) {
-  return pull(
-    pull.map(renderMsg.bind(this, opts)),
-    wrap('<div class="ssb-thread">', "</div>")
-  );
-}
-
-function wrapPage(id) {
-  return wrap(
-    "<!doctype html><html><head>" +
-      "<meta charset=utf-8>" +
-      "<title>Scuttlebutt content: " +
-      id +
-      "</title>" +
-      '<meta name=viewport content="width=device-width,initial-scale=1">' +
-      '<link rel=stylesheet href="/static/base.css">' +
-      '<link rel=stylesheet href="/static/nicer.css">' +
-      "</head><body>",
-    "</body></html>"
-  );
-}
-
-function wrapJSON() {
-  var first = true;
-  return pull(pull.map(JSON.stringify), join(","), wrap("[", "]"));
-}
-
-function wrapJSEmbed(opts) {
-  return pull(
-    wrap('<link rel=stylesheet href="' + opts.base + 'static/base.css">', ""),
-    pull.map(docWrite),
-    opts.base_token && rewriteBase(new RegExp(opts.base_token, "g"))
-  );
-}
-
-function rewriteBase(token) {
-  // detect the origin of the script and rewrite the js/html to use it
-  return pull(
-    replace(token, '" + SSB_VIEWER_ORIGIN + "/'),
-    wrap(
-      "var SSB_VIEWER_ORIGIN = (function () {" +
-        'var scripts = document.getElementsByTagName("script")\n' +
-        "var script = scripts[scripts.length-1]\n" +
-        "if (!script) return location.origin\n" +
-        'return script.src.replace(/\\/%.*$/, "")\n' +
-        "}())\n",
-      ""
-    )
-  );
-}
-
-function join(delim) {
-  var first = true;
-  return pull.map(function(val) {
-    if (!first) return delim + String(val);
-    first = false;
-    return val;
-  });
-}
-
-function replace(re, rep) {
-  return pull.map(function(val) {
-    return String(val).replace(re, rep);
-  });
-}
-
-function docWrite(str) {
-  return "document.write(" + JSON.stringify(str) + ")\n";
-}
-
-function hash(arr) {
-  return arr
-    .reduce(function(hash, item) {
-      return hash.update(String(item));
-    }, crypto.createHash("sha256"))
-    .digest("base64");
-}
-
-function renderMsg(opts, msg) {
-  var c = msg.value.content || {};
-  var name = encodeURIComponent(msg.key);
-  return (
-    '<div class="ssb-message" id="' +
-    name +
-    '">' +
-    '<img class="ssb-avatar-image" alt=""' +
-    ' src="' +
-    opts.img_base +
-    escape(msg.author.image) +
-    '"' +
-    ' height="32" width="32">' +
-    '<a class="ssb-avatar-name"' +
-    ' href="/' +
-    escape(msg.value.author) +
-    '"' +
-    ">" +
-    msg.author.name +
-    "</a>" +
-    msgTimestamp(msg, name) +
-    render(opts, c) +
-    "</div>"
-  );
-}
-
-function msgTimestamp(msg, name) {
-  var date = new Date(msg.value.timestamp);
-  return (
-    '<time class="ssb-timestamp" datetime="' +
-    date.toISOString() +
-    '">' +
-    '<a href="#' +
-    name +
-    '">' +
-    formatDate(date) +
-    "</a></time>"
-  );
-}
-
-function formatDate(date) {
-  // return date.toISOString().replace('T', ' ')
-  return htime(date);
-}
-
-function render(opts, c) {
-  if (c.type === "post") {
-    var channel = c.channel
-      ? ' in <a href="/view/channel/' + c.channel + '">#' + c.channel + "</a>"
-      : "";
-    return channel + renderPost(opts, c);
-  } else if (c.type == "vote" && c.vote.expression == "Dig") {
-    var channel = c.channel
-      ? ' in <a href="/view/channel/' + c.channel + '">#' + c.channel + "</a>"
-      : "";
-    var linkedText = "this";
-    if (typeof c.vote.linkedText != "undefined")
-      linkedText = c.vote.linkedText.substring(0, 75);
-    return (
-      " dug " +
-      '<a href="/view/' +
-      c.vote.link +
-      '">' +
-      linkedText +
-      "</a>" +
-      channel
-    );
-  } else if (c.type == "vote") {
-    var linkedText = "this";
-    if (typeof c.vote.linkedText != "undefined")
-      linkedText = c.vote.linkedText.substring(0, 75);
-    return ' voted <a href="/view/' + c.vote.link + '">' + linkedText + "</a>";
-  } else if (c.type == "contact" && c.following) {
-    var name = c.contact;
-    if (typeof c.contactAbout != "undefined") name = c.contactAbout.name;
-    return ' followed <a href="/view/' + c.contact + '">' + name + "</a>";
-  } else if (c.type == "contact" && !c.following) {
-    var name = c.contact;
-    if (typeof c.contactAbout != "undefined") name = c.contactAbout.name;
-    return ' unfollowed <a href="/view/' + c.contact + '">' + name + "</a>";
-  } else if (typeof c == "string") return " wrote something private ";
-  else if (c.type == "about") return " changed something in about";
-  else if (c.type == "issue") return " created an issue";
-  else if (c.type == "git-update") return " did a git update";
-  else if (c.type == "ssb-dns") return " updated dns";
-  else if (c.type == "pub") return " connected to a pub";
-  else if (c.type == "channel" && c.subscribed)
-    return (
-      ' subscribed to channel <a href="/view/channel/' +
-      c.channel +
-      '">#' +
-      c.channel +
-      "</a>"
-    );
-  else if (c.type == "channel" && !c.subscribed)
-    return (
-      ' unsubscribed from channel <a href="/view/channel/' +
-      c.channel +
-      '">#' +
-      c.channel +
-      "</a>"
-    );
-  else return renderDefault(c);
-}
-
-function renderPost(opts, c) {
-  return '<div class="ssb-post">' + marked(c.text, opts.marked) + "</div>";
-}
-
-function renderDefault(c) {
-  return "<pre>" + JSON.stringify(c, 0, 2) + "</pre>";
 }
