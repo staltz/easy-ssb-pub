@@ -42,13 +42,38 @@ export interface SSBConfig {
   };
 }
 
+export type AccountKey = string;
+
 export interface SSBPeer {
   state: 'connecting' | 'connected' | 'disconnecting' | null;
   host: string;
   port: number;
-  key: string;
+  key: AccountKey;
   source: 'pub' | 'manual' | 'local';
   announcers: number;
+}
+
+export type MsgKey = string;
+
+export interface Msg {
+  key: MsgKey; // e.g. %jpBMeL8riakqxxrVaVzXSBvtT6wQQ7Q/F5+bQAaAASo=.sha256
+  value: {
+    previous: MsgKey;
+    author: AccountKey;
+    sequence: number;
+    timestamp: number;
+    hash: 'sha256';
+    content: {
+      type: 'post' | 'about' | 'like' | 'follow';
+      text: string;
+      root: MsgKey;
+      branch: MsgKey;
+    };
+  };
+  isMention?: boolean;
+  related?: Array<Msg>;
+  signature: string;
+  timestamp: number;
 }
 
 export interface Scuttlebot {
@@ -87,7 +112,9 @@ export interface Scuttlebot {
   createFeed: Function;
   whoami: Function;
   relatedMessages: Function;
-  query: any;
+  query: {
+    read(opts: any): any;
+  };
   createFeedStream: Function;
   createHistoryStream: Function;
   createLogStream: Function;
@@ -132,7 +159,7 @@ export interface Scuttlebot {
     add: Function;
     ls: Function;
     changes: Function;
-    want: Function;
+    want(hash: string, cb: (err: any, has: boolean) => void): void;
     push: Function;
     pushed: Function;
     createWants: Function;
