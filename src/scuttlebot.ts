@@ -195,15 +195,17 @@ export function setupScuttlebot(): {ssbBot: Scuttlebot, ssbConf: SSBConfig} {
       .use(require('scuttlebot/plugins/plugins'))
       .use(require('scuttlebot/plugins/master'))
       .use(require('scuttlebot/plugins/gossip'))
-      .use(require('scuttlebot/plugins/friends'))
       .use(require('scuttlebot/plugins/replicate'))
+      .use(require('ssb-friends'))
       .use(require('ssb-blobs'))
       .use(require('scuttlebot/plugins/invite'))
-      .use(require('scuttlebot/plugins/block'))
       .use(require('scuttlebot/plugins/local'))
       .use(require('scuttlebot/plugins/logging'))
+      .use(require('scuttlebot/plugins/private'))
+      .use(require('scuttlebot/plugins/block'))
       .use(require('ssb-query'))
-      .use(require('scuttlebot/plugins/private'));
+      .use(require('ssb-links'))
+      .use(require('ssb-ws'));
   const ssbBot: Scuttlebot = createSbot(ssbConf);
 
   const manifestFile = path.join(ssbConf.path, 'manifest.json');
