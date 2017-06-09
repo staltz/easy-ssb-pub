@@ -1,0 +1,13 @@
+diff --git a/node_modules/secure-scuttlebutt/legacy.js b/node_modules/secure-scuttlebutt/legacy.js
+index cd98aa4..c8e205e 100644
+--- a/node_modules/secure-scuttlebutt/legacy.js
++++ b/node_modules/secure-scuttlebutt/legacy.js
+@@ -95,7 +95,7 @@ module.exports = function (db, flumedb) {
+           else flumedb.get(v, function (err, data) {
+             if(err) throw err
+             if(data.timestamp < last.timestamp) {
+-              prog = flume.progress.migration = {
++              prog = flumedb.progress.migration = {
+                 start: data.timestamp,
+                 current: 0,
+                 target: +last.timestamp
