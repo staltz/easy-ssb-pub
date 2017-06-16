@@ -4,7 +4,7 @@
   "private": true,
   "description": "Deploy a Secure Scuttlebutt Pub easily",
   "author": "Andre Staltz",
-  "license": "MIT",
+  "license": "AGPL-3.0",
   "main": "dist/index.js",
   "dependencies": {
     "@types/debug": "0.0.29",
