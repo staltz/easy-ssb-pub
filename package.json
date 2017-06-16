@@ -56,7 +56,8 @@
     "patch-package": "^2.1.1",
     "supertest": "^3.0.0",
     "ts-node": "^3.0.4",
-    "tslint": "^5.2.0"
+    "tslint": "^5.2.0",
+    "yarn": "0.24.6"
   },
   "scripts": {
     "compile": "tsc",
@@ -67,6 +68,6 @@
     "test": "npm run lint && npm run mocha"
   },
   "engines": {
-    "node": "6.9.1"
+    "node": "6.10.3"
   }
 }

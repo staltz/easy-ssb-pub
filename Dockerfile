@@ -9,7 +9,7 @@ RUN apt-get upgrade -y
 RUN apt-get install -y libleveldb-dev
 
 ENV NPM_CONFIG_LOGLEVEL info
-ENV NODE_VERSION 6.9.1
+ENV NODE_VERSION 6.10.3
 
 RUN apt-get install curl libc6 libcurl3 zlib1g libtool autoconf
 
@@ -25,7 +25,7 @@ RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
 COPY package.json /usr/src/app/
-RUN . $HOME/.nvm/nvm.sh && npm install -g yarn
+RUN . $HOME/.nvm/nvm.sh && npm install -g yarn@0.24.6
 RUN . $HOME/.nvm/nvm.sh && yarn
 COPY . /usr/src/app
 
