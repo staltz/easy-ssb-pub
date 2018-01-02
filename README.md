@@ -45,3 +45,11 @@ After the container has been created, stop/start/restart the server using:
 6. `git clone https://github.com/staltz/easy-ssb-pub.git`
 7. `npm install`
 8. `HOST=publicurltoyourserv.er npm start`
+
+## How to debug
+
+Sometimes it is useful to see what the easy-ssb-pub server is doing. When starting the server, provide the environment variable:
+
+```
+DEBUG='*'
+```
