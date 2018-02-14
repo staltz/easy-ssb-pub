@@ -43,8 +43,9 @@ After the container has been created, stop/start/restart the server using:
 4. Restart the shell
 5. `nvm install v6.9.1`
 6. `git clone https://github.com/staltz/easy-ssb-pub.git`
-7. `npm install`
-8. `HOST=publicurltoyourserv.er npm start`
+7. `cd easy-ssb-pub`
+8. `npm install`
+9. `HOST=publicurltoyourserv.er npm start`
 
 ## How to debug
 
