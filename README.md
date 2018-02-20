@@ -14,6 +14,8 @@ Check the [Pub Registry](https://github.com/ssbc/scuttlebot/wiki/Pub-Servers).
 
 ## How to deploy
 
+**⚠️ Note! This project is not actively maintained anymore by @staltz, because: (1) I'm focusing on building [MMMMM](https://github.com/staltz/mmmmm-mobile/) and have no time, (2) this project should be split up as multiple sbot plugins, that would be a better architecture that allow easier evolution of each part, and easier customization. Feel free to fork! 🍴**
+
 You will need a server that supports a TCP sockets on ports 80, 8008 and 8007. This means [Heroku](https://heroku.com/) or [Zeit Now](https://zeit.co/now) will *not* work. Recommended services for servers-on-demand: [Digital Ocean Docker Droplet](https://www.digitalocean.com/products/one-click-apps/docker/), [UpCloud](https://upcloud.com/), [Amazon LightSail](https://amazonlightsail.com/), [Vultr](https://vultr.com/), [Linode](https://www.linode.com), etc.
 
 1. Acess your server via shell (e.g. SSH)
