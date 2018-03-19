@@ -224,7 +224,8 @@ export function setupScuttlebot(): {ssbBot: Scuttlebot, ssbConf: SSBConfig} {
       .use(require('scuttlebot/plugins/block'))
       .use(require('ssb-query'))
       .use(require('ssb-links'))
-      .use(require('ssb-ws'));
+      .use(require('ssb-ws'))
+      .use(require('ssb-autoname'));
   const ssbBot: Scuttlebot = createSbot(ssbConf);
 
   const manifestFile = path.join(ssbConf.path, 'manifest.json');
