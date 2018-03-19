@@ -22,7 +22,7 @@ import superagent = require('superagent');
 import swarm = require('discovery-swarm');
 import {SWARM_PORT, SWARM_ID_PREFIX, MAX_CONNECTED_PUBS, version, debug} from './config';
 import {Scuttlebot, SSBConfig, SSBPeer} from './scuttlebot';
-import {Pick2} from './utils';
+import {Pick2} from 'ts-multipick';
 import * as Rx from 'rxjs';
 
 // Convert to ComVer:

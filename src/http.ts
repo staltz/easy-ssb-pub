@@ -22,7 +22,7 @@ import qr = require('qr-image');
 import {HTTP_PORT, debug} from './config';
 import {Scuttlebot} from './scuttlebot';
 import {Server} from 'http';
-import {Pick2} from './utils';
+import {Pick2} from 'ts-multipick';
 import pull = require('pull-stream');
 import makeServeViewer = require('./viewer/index');
 
