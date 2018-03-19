@@ -110,7 +110,7 @@ function isNewRemotePeer(remoteInfo: PeerInfo, pubs: Array<SSBPeer>): boolean {
 
 function requestInvite$(invitationUrl: string): Rx.Observable<superagent.Response> {
   const request = superagent(invitationUrl);
-  return Rx.Observable.bindNodeCallback(request.end.bind(request))();
+  return Rx.Observable.bindNodeCallback<superagent.Response>(request.end.bind(request))();
 }
 
 /**
