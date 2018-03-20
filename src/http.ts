@@ -73,7 +73,7 @@ export function setupExpressApp(opts: Readonly<Options>): Server {
   app.set('views', __dirname + '/../pages');
   app.set('view engine', 'ejs');
 
-  type Route = '/' | '/invited' | '/invited/json' | '/view/*';
+  type Route = '/' | '/invited' | '/view/*';
 
   const idQR: QRSVG = qr.svgObject(opts.bot.id);
   const serveViewer = makeServeViewer(opts.bot, {viewer: {base: '/view/'}});
@@ -97,16 +97,6 @@ export function setupExpressApp(opts: Readonly<Options>): Server {
           qrSize: qrCode.size,
           qrPath: qrCode.path,
         });
-      }, reportIfError),
-    );
-  });
-
-  app.get('/invited/json' as Route, (req: express.Request, res: express.Response) => {
-    pull(
-      createInvite(opts.bot, 1),
-      pull.take(1),
-      pull.drain((invitation: string) => {
-        res.json({invitation});
       }, reportIfError),
     );
   });

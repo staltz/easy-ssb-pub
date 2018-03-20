@@ -18,9 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import {setupScuttlebot} from './scuttlebot';
-import {setupDiscoveryPeer} from './discovery';
 import {setupExpressApp} from './http';
 
-const {ssbBot, ssbConf} = setupScuttlebot();
-setupDiscoveryPeer({bot: ssbBot, config: ssbConf});
+const {ssbBot} = setupScuttlebot();
 setupExpressApp({bot: ssbBot});

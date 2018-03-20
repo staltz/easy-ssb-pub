@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import request = require('supertest');
-import assert = require('assert');
 import {Response} from '@types/supertest';
 import {setupExpressApp} from './http';
 import htmlLooksLike = require('html-looks-like');
@@ -110,29 +109,6 @@ describe('easy-ssb-pub http server', function () {
           </html>
         `;
         htmlLooksLike((res as any).text, expected);
-      })
-      .end(() => server.close(done));
-  });
-
-  it('should display JSON invitation on route "/invited/json"', function (done) {
-    const invitation = 'my fake invitation goes here';
-    const scuttlebot = {
-      id: '@FakeIdGoesHere=.ed25519',
-      invite: {
-        create: (amount: number, cb: Function) => {
-          cb(null, invitation);
-        },
-      },
-    };
-
-    const server = setupExpressApp({bot: scuttlebot, port: 4000});
-
-    request(server)
-      .get('/invited/json')
-      .expect('Content-Type', 'application/json; charset=utf-8')
-      .expect(200)
-      .expect((res: Response) => {
-        assert.strictEqual(JSON.stringify(res.body), `{"invitation":"${invitation}"}`);
       })
       .end(() => server.close(done));
   });

@@ -1,7 +1,6 @@
 {
   "rules": {
     "adjacent-overload-signatures": true,
-    "curly": true,
     "eofline": false,
     "align": [true, "parameters"],
     "class-name": true,

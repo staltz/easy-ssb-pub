@@ -53,6 +53,10 @@ export interface SSBConfig {
   caps: {
     shs: string;
   };
+  swarm: {
+    port: number;
+    maxPeers: number;
+  };
   keys: {
     curve: 'ed25519',
     public: string;
@@ -210,6 +214,7 @@ export function setupScuttlebot(): {ssbBot: Scuttlebot, ssbConf: SSBConfig} {
   const ssbConf: SSBConfig = confInject(process.env.ssb_appname, minimist(conf));
   ssbConf.keys = ssbKeys.loadOrCreateSync(path.join(ssbConf.path, 'secret'));
   ssbConf.port = SBOT_PORT;
+  ssbConf.swarm = {port: 8007, maxPeers: 3};
   const createSbot = ssbClient
       .use(require('scuttlebot/plugins/plugins'))
       .use(require('scuttlebot/plugins/master'))
@@ -220,12 +225,12 @@ export function setupScuttlebot(): {ssbBot: Scuttlebot, ssbConf: SSBConfig} {
       .use(require('scuttlebot/plugins/invite'))
       .use(require('scuttlebot/plugins/local'))
       .use(require('scuttlebot/plugins/logging'))
-      .use(require('scuttlebot/plugins/private'))
-      .use(require('scuttlebot/plugins/block'))
       .use(require('ssb-query'))
       .use(require('ssb-links'))
       .use(require('ssb-ws'))
-      .use(require('ssb-autoname'));
+      .use(require('ssb-ebt'))
+      .use(require('ssb-autoname'))
+      .use(require('ssb-discovery-swarm'));
   const ssbBot: Scuttlebot = createSbot(ssbConf);
 
   const manifestFile = path.join(ssbConf.path, 'manifest.json');
